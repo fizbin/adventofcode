@@ -1,0 +1,7 @@
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- multiset
+executable:
+  main: aoc5.hs
+  source-dirs: .
