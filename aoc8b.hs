@@ -2,10 +2,11 @@
 
 import Control.Monad
 import Data.List
-import qualified Data.Map as M
 import Data.Maybe
 import System.Environment
 
+-- isSub a b asks "is 'a' a sublist of 'b'?" and assumes 'a' and 'b' are sorted
+isSub :: Ord a => [a] -> [a] -> Bool
 isSub [] _ = True
 isSub _ [] = False
 isSub (a:as) (b:bs)
@@ -17,7 +18,7 @@ isSub (a:as) (b:bs)
 p2 :: ([String], [String]) -> Int
 p2 (ins, outs) =
   let [poss] = go
-      mapish = zip poss [0 ..]
+      mapish = zip poss [0 ..] :: [(String, Int)]
       intstr = concatMap (show . fromJust . flip lookup mapish) outs
    in read intstr
   where

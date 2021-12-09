@@ -1,11 +1,11 @@
 {-# LANGUAGE Haskell2010 #-}
 
-import Control.Monad
 import Data.List (sort)
-import qualified Data.Map as M
 import Data.Maybe
 import System.Environment
 
+-- isSub a b asks "is 'a' a sublist of 'b'?" and assumes 'a' and 'b' are sorted
+isSub :: Ord a => [a] -> [a] -> Bool
 isSub [] _ = True
 isSub _ [] = False
 isSub (a:as) (b:bs)
@@ -14,7 +14,9 @@ isSub (a:as) (b:bs)
   | a > b = isSub (a : as) bs
   | otherwise = error "Trichotomy!"
 
-pukool a bs = lookup a $ map (\(a, b) -> (b, a)) bs
+-- i.e. "lookup" backwards
+pukool :: Eq a => a -> [(b, a)] -> Maybe b
+pukool a bs = lookup a $ map (\(x, y) -> (y, x)) bs
 
 p2 :: ([String], [String]) -> Int
 p2 (ins, outs) =
@@ -61,7 +63,7 @@ p2 (ins, outs) =
         , length inthing == 6
         , isNothing (lookup inthing known4)
         ] ++
-        known4
+        known4 :: [(String, Int)]
    in fromJust $ do
         ints <- mapM (`lookup` known5) outs
         let intstr = concatMap show ints

@@ -4,7 +4,7 @@
 
 import Data.List
 import Data.Maybe
-import Debug.Trace
+--import Debug.Trace
 import System.Environment
 import qualified Data.Map as M
 import qualified Data.MultiSet as MS
@@ -51,6 +51,7 @@ p2 nbmap dat =
         then basins
         else go nbasins
 
+mkCoordsWithNeighbors :: Int -> Int -> [((Int, Int), [(Int, Int)])]
 mkCoordsWithNeighbors rows cols =
   [ ((i, j), nbs)
   | i <- [0 .. rows - 1]

@@ -8,14 +8,16 @@ p1 thing = let (h, d) = foldl' doit (0, 0) thing
     doit (h1, d1) ("forward", n) = (h1 + fromIntegral n, d1)
     doit (h1, d1) ("up", n) = (h1, d1 - fromIntegral n)
     doit (h1, d1) ("down", n) = (h1, d1 + fromIntegral n)
+    doit _ x = error $ "Unknown " ++ show x
 
 p2 :: [(String, Int)] -> Integer
-p2 thing = let (h, d, a) = foldl' doit (0, 0, 0) thing
+p2 thing = let (h, d, _) = foldl' doit (0, 0, 0) thing
             in h*d
     where
     doit (h1, d1, a1) ("forward", n) = (h1 + fromIntegral n, d1 + a1 * fromIntegral n, a1)
     doit (h1, d1, a1) ("up", n) = (h1, d1, a1 - fromIntegral n)
     doit (h1, d1, a1) ("down", n) = (h1, d1, a1 + fromIntegral n)
+    doit _ x = error $ "Unknown " ++ show x
     
 main :: IO ()
 main = do

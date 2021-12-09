@@ -1,14 +1,17 @@
 import System.Environment
 
+every :: Int -> [a] -> [a]
 every _ [] = []
 every n lst = head lst : every n (drop n lst)
 
+won :: [Int] -> [Int] -> Bool
 won board called =
-    let boardfound = [if x `elem` called then 1 else 0 | x <- board]
+    let boardfound = [if x `elem` called then 1 else 0 | x <- board] :: [Int]
         horizwon = any (\idx -> 5 == sum (take 5 $ drop (5*idx) boardfound)) [0..4]
         vertwon = any (\idx -> 5 == sum (every 5 $ drop idx boardfound)) [0..4]
     in horizwon || vertwon
 
+score :: (Num a, Eq a) => [a] -> [a] -> a
 score board called =
     let lastcalled = last called
         unmarked = [x | x <- board, x `notElem` called]
@@ -23,7 +26,7 @@ p1 boards called =
     head [score b (take idx called) | idx <- [4..length called], b <- boards, won b (take idx called)]
 
 p2 :: [[Int]] -> [Int] -> Int
-p2 boards called = uncurry score $ go 4 boards
+p2 boards' called = uncurry score $ go 4 boards'
     where
         go :: Int -> [[Int]] -> ([Int], [Int])
         go _ [] = error "empty boards"

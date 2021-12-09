@@ -6,8 +6,8 @@ import Data.Char
 middle :: [Char] -> Char
 middle [] = '1'
 middle [a] = a
-middle [a, b] = b
-middle (x:xs) = middle (init xs)
+middle [_, b] = b
+middle (_:xs) = middle (init xs)
 
 mostCommon :: [Char] -> Char
 mostCommon xs = middle $ sort xs

@@ -1,7 +1,5 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE Haskell2010 #-}
 
-import qualified Data.Map as M
-import Data.List (sort)
 import System.Environment
 
 main :: IO ()

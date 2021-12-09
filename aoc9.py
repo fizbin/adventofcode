@@ -48,7 +48,7 @@ while keep_going:
             new_basin = basin[row][col]
             if row > 0 and basin[row-1][col] != 0:
                 new_basin = max([new_basin, basin[row-1][col]])
-            if row < len(data) - 1 and basin[row+1][col] != 0:
+            if row < len(data) - 1:
                 new_basin = max([new_basin, basin[row+1][col]])
             if col > 0 and basin[row][col-1] != 0:
                 new_basin = max([new_basin, basin[row][col-1]])
@@ -58,9 +58,7 @@ while keep_going:
                 basin[row][col] = new_basin
                 keep_going = True
 
-basinmap = collections.Counter()
-for mybasin in sum(basin, []):
-    basinmap[mybasin] += 1
+basinmap = collections.Counter(sum(basin, []))
 del basinmap[0]
 
 common = [x[1] for x in basinmap.most_common(3)]

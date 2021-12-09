@@ -1,7 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
 import qualified Data.Map as M
-import Data.List (sort)
 import System.Environment
 
 histogram :: (Ord a, Num b) => [a] -> M.Map a b
