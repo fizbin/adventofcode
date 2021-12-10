@@ -8,3 +8,4 @@ aoc[0-9]
 aoc[0-9][a-z]
 aoc[0-9][0-9]
 aoc[0-9][0-9][a-z]
+.DS_Store
