@@ -2,6 +2,7 @@ dependencies:
 - base >= 4.7 && < 5
 - containers
 - multiset
+- mtl
 executable:
   main: aoc5.hs
   source-dirs: .
