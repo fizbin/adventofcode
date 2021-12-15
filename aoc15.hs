@@ -17,32 +17,44 @@ data Heap a
   = EmptyH
   | HeapH Bool a (Heap a) (Heap a)
 
+peekH :: Heap a -> Maybe a
+peekH EmptyH = Nothing
+peekH (HeapH _ a _ _) = Just a
+
 popH :: Ord a => Heap a -> Maybe (a, Heap a)
 popH EmptyH = Nothing
-popH (HeapH iBal v top bot) =
+popH (HeapH True v top bot) =
+  case (peekH top, peekH bot) of
+    (Nothing, Nothing) -> Just (v, EmptyH)
+    (Just a, Just b) ->
+      if a < b
+        then (v, ) . (\(v', hp) -> HeapH False v' bot hp) <$> popH top
+        else (v, ) . (\(v', hp) -> HeapH False v' top hp) <$> popH bot
+    _ -> error "invalid internal structure"
+popH (HeapH False v top bot) =
   case popH top of
-    Nothing -> Just (v, EmptyH)
+    Nothing -> error "invalid internal structure"
     Just (a, top') ->
-      let (b, bot') = pushPopH bot a
-       in Just (v, HeapH (not iBal) b bot' top')
+      let (a', bot') = pushPopH bot a
+       in Just (v, HeapH True a' top' bot')
 
 pushH :: Ord a => Heap a -> a -> Heap a
 pushH EmptyH x = HeapH True x EmptyH EmptyH
-pushH (HeapH iBal v top bot) x
-  | v < x = HeapH (not iBal) v (pushH bot x) top
-  | otherwise = HeapH (not iBal) x (pushH bot v) top
+pushH (HeapH isBal v top bot) x
+  | v < x = HeapH (not isBal) v (pushH bot x) top
+  | otherwise = HeapH (not isBal) x (pushH bot v) top
 
 -- Equivalent to (\a b -> fromJust $ popH $ pushH a b)
 pushPopH :: Ord a => Heap a -> a -> (a, Heap a)
 pushPopH EmptyH x = (x, EmptyH)
-pushPopH (HeapH iBal v top bot) x =
+pushPopH (HeapH isBal v top bot) x =
   if v < x
     then let (x', top') = pushPopH top x
              (x'', bot') = pushPopH bot x'
-          in (v, HeapH iBal x'' top' bot')
+          in (v, HeapH isBal x'' top' bot')
     else let (v', top') = pushPopH top v
              (v'', bot') = pushPopH bot v'
-          in (x, HeapH iBal v'' top' bot')
+          in (x, HeapH isBal v'' top' bot')
 
 instance (Ord a) => Semigroup (Heap a) where
   v <> EmptyH = v
@@ -79,7 +91,8 @@ mergeSorted a1@(a:as) b1@(b:bs) =
     then a : mergeSorted as b1
     else b : mergeSorted a1 bs
 
-p1 :: (Ord a, Ord p, Num a) => Map p [p] -> Map p a -> p -> p -> a
+-- takes 5m18s (Ah!) on both parts
+p1 :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
 p1 nbmap dataMap start goal = go mempty (pushH mempty (0, start))
   where
     go visited theap =
@@ -96,6 +109,7 @@ p1 nbmap dataMap start goal = go mempty (pushH mempty (0, start))
                           heap'
                           (nbmap ! spot)
 
+-- takes ~40s on both parts
 p1' :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
 p1' nbmap dataMap start goal = go mempty [(0, start)]
   where
@@ -108,7 +122,25 @@ p1' nbmap dataMap start goal = go mempty [(0, start)]
             else if spot == goal
                    then cost
                    else go (S.insert spot visited) $
-                        sort $ heap' ++
+                        sort $
+                        heap' ++
+                        map (\nb -> (cost + dataMap ! nb, nb)) (nbmap ! spot)
+
+-- takes ~14s on both parts
+p1'' :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
+p1'' nbmap dataMap start goal = go mempty [(0, start)]
+  where
+    go visited theap =
+      case theap of
+        [] -> error "Ran out of heap"
+        ((cost, spot):heap') ->
+          if S.member spot visited
+            then go visited heap'
+            else if spot == goal
+                   then cost
+                   else go (S.insert spot visited) $
+                        mergeSorted heap' $
+                        sort $
                         map (\nb -> (cost + dataMap ! nb, nb)) (nbmap ! spot)
 
 main :: IO ()
@@ -124,7 +156,9 @@ main = do
   let allspots = concat datas
   let datamap = M.fromList $ zip (map fst coordsWithNeighbors) allspots
   let nbmap = M.fromList coordsWithNeighbors
-  print $ p1' nbmap datamap (0, 0) (length datas - 1, length (head datas) - 1)
+  let doitFunc = p1''
+  print $
+    doitFunc nbmap datamap (0, 0) (length datas - 1, length (head datas) - 1)
   let incrow = map ((+ 1) . (`mod` 9))
   let bigdata1 = map (concat . take 5 . iterate incrow) datas :: [[Int]]
   let bigdata = concat $ take 5 $ iterate (map incrow) bigdata1
@@ -132,7 +166,7 @@ main = do
   let bigdatamap = M.fromList $ zip (map fst bigCwNbs) (concat bigdata)
   let bigNbmap = M.fromList bigCwNbs
   print $
-    p1'
+    doitFunc
       bigNbmap
       bigdatamap
       (0, 0)
