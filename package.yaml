@@ -3,6 +3,7 @@ dependencies:
 - containers
 - multiset
 - mtl
+- pqueue
 executable:
   main: aoc5.hs
   source-dirs: .

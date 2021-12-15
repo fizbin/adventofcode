@@ -1,13 +1,18 @@
--- stack --resolver nightly-2021-11-28 script --package mtl --package containers
+-- stack --resolver lts-18.18 script --package pqueue --package containers
 {-# OPTIONS_GHC -Wall -Wno-unused-top-binds #-}
 {-# LANGUAGE Haskell2010 #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import Data.List
+import Data.Maybe
 
 import qualified Data.Map as M
 import Data.Map (Map, (!))
+import qualified Data.PQueue.Min as PQ
 import qualified Data.Set as S
+import System.Console.GetOpt
 
 --import Debug.Trace
 import System.Environment
@@ -47,13 +52,52 @@ pushH (HeapH isBal v top bot) x
 -- Equivalent to (\a b -> fromJust $ popH $ pushH a b)
 pushPopH :: Ord a => Heap a -> a -> (a, Heap a)
 pushPopH EmptyH x = (x, EmptyH)
-pushPopH (HeapH isBal v top bot) x =
+pushPopH old@(HeapH isBal v top bot) x
+  | x <= v = (x, old)
+  | otherwise =
+    case (peekH top, peekH bot) of
+      (Nothing, Nothing) -> (v, HeapH True x EmptyH EmptyH)
+      (Just a, Nothing) ->
+        if x <= a
+          then (v, HeapH False x top bot)
+          else (v, HeapH False a (HeapH True x EmptyH EmptyH) bot)
+      (Just a, Just b) ->
+        if a < b
+          then let (v', top') = pushPopH top x
+                in (v, HeapH isBal v' top' bot)
+          else let (v', bot') = pushPopH bot x
+                in (v, HeapH isBal v' top bot')
+      _ -> error "invalid structure"
+
+-- bad handrolled heap implementations:
+-- popH' is just popH, except that it calls pushPopH' in one case
+popH' :: Ord a => Heap a -> Maybe (a, Heap a)
+popH' EmptyH = Nothing
+popH' (HeapH True v top bot) =
+  case (peekH top, peekH bot) of
+    (Nothing, Nothing) -> Just (v, EmptyH)
+    (Just a, Just b) ->
+      if a < b
+        then (v, ) . (\(v', hp) -> HeapH False v' bot hp) <$> popH' top
+        else (v, ) . (\(v', hp) -> HeapH False v' top hp) <$> popH' bot
+    _ -> error "invalid internal structure"
+popH' (HeapH False v top bot) =
+  case popH top of
+    Nothing -> error "invalid internal structure"
+    Just (a, top') ->
+      let (a', bot') = pushPopH' bot a
+       in Just (v, HeapH True a' top' bot')
+
+-- This is the implementation that's just a bad idea
+pushPopH' :: Ord a => Heap a -> a -> (a, Heap a)
+pushPopH' EmptyH x = (x, EmptyH)
+pushPopH' (HeapH isBal v top bot) x =
   if v < x
-    then let (x', top') = pushPopH top x
-             (x'', bot') = pushPopH bot x'
+    then let (x', top') = pushPopH' top x
+             (x'', bot') = pushPopH' bot x'
           in (v, HeapH isBal x'' top' bot')
-    else let (v', top') = pushPopH top v
-             (v'', bot') = pushPopH bot v'
+    else let (v', top') = pushPopH' top v
+             (v'', bot') = pushPopH' bot v'
           in (x, HeapH isBal v'' top' bot')
 
 instance (Ord a) => Semigroup (Heap a) where
@@ -66,6 +110,60 @@ instance (Ord a) => Semigroup (Heap a) where
 
 instance (Ord a) => Monoid (Heap a) where
   mempty = EmptyH
+
+data ListWithResort =
+  ListWithResort
+
+data ListWithSortedMerge =
+  ListWithSortedMerge
+
+data HandrolledQueue =
+  HandrolledQueue
+
+data PQQueue =
+  PQQueue
+
+data BadHandrolledQueue =
+  BadHandrolledQueue
+
+class QueueStrategy strat where
+  type QueueType strat :: * -> *
+  initQ :: (Ord a) => strat -> a -> QueueType strat a
+  minViewQ ::
+       (Ord a) => strat -> QueueType strat a -> Maybe (a, QueueType strat a)
+  insertQ :: (Ord a) => strat -> QueueType strat a -> [a] -> QueueType strat a
+
+instance QueueStrategy HandrolledQueue where
+  type QueueType HandrolledQueue = Heap
+  initQ _ initVal = pushH mempty initVal
+  minViewQ _ = popH
+  insertQ _ q = foldl' pushH q
+
+instance QueueStrategy BadHandrolledQueue where
+  type QueueType BadHandrolledQueue = Heap
+  initQ _ initVal = pushH mempty initVal
+  minViewQ _ = popH'
+  insertQ _ q = foldl' pushH q
+
+instance QueueStrategy PQQueue where
+  type QueueType PQQueue = PQ.MinQueue
+  initQ _ initVal = PQ.insert initVal mempty
+  minViewQ _ = PQ.minView
+  insertQ _ q = foldl' (flip PQ.insert) q
+
+instance QueueStrategy ListWithResort where
+  type QueueType ListWithResort = []
+  initQ _ initVal = [initVal]
+  minViewQ _ [] = Nothing
+  minViewQ _ (a:as) = Just (a, as)
+  insertQ _ q vals = sort $ q ++ vals
+
+instance QueueStrategy ListWithSortedMerge where
+  type QueueType ListWithSortedMerge = []
+  initQ _ initVal = [initVal]
+  minViewQ _ [] = Nothing
+  minViewQ _ (a:as) = Just (a, as)
+  insertQ _ q = mergeSorted q . sort
 
 mkCoordsWithNeighbors :: Int -> Int -> [((Int, Int), [(Int, Int)])]
 mkCoordsWithNeighbors rows cols =
@@ -92,11 +190,18 @@ mergeSorted a1@(a:as) b1@(b:bs) =
     else b : mergeSorted a1 bs
 
 -- takes 5m18s (Ah!) on both parts
-p1 :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
-p1 nbmap dataMap start goal = go mempty (pushH mempty (0, start))
+p1 ::
+     forall s p. (QueueStrategy s, Ord p)
+  => s
+  -> Map p [p]
+  -> Map p Int
+  -> p
+  -> p
+  -> Int
+p1 strategy nbmap dataMap start goal = go mempty (initQ strategy (0, start))
   where
     go visited theap =
-      case popH theap of
+      case minViewQ strategy theap of
         Nothing -> error "Ran out of heap"
         Just ((cost, spot), heap') ->
           if S.member spot visited
@@ -104,59 +209,44 @@ p1 nbmap dataMap start goal = go mempty (pushH mempty (0, start))
             else if spot == goal
                    then cost
                    else go (S.insert spot visited) $
-                        foldl'
-                          (\heap nb -> pushH heap (cost + dataMap ! nb, nb))
-                          heap'
-                          (nbmap ! spot)
-
--- takes ~40s on both parts
-p1' :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
-p1' nbmap dataMap start goal = go mempty [(0, start)]
-  where
-    go visited theap =
-      case theap of
-        [] -> error "Ran out of heap"
-        ((cost, spot):heap') ->
-          if S.member spot visited
-            then go visited heap'
-            else if spot == goal
-                   then cost
-                   else go (S.insert spot visited) $
-                        sort $
-                        heap' ++
+                        insertQ strategy heap' $
                         map (\nb -> (cost + dataMap ! nb, nb)) (nbmap ! spot)
 
--- takes ~14s on both parts
-p1'' :: Ord p => Map p [p] -> Map p Int -> p -> p -> Int
-p1'' nbmap dataMap start goal = go mempty [(0, start)]
+processOpts ::
+     Ord p => [String] -> IO ([String], Map p [p] -> Map p Int -> p -> p -> Int)
+processOpts argv =
+  case getOpt Permute options argv of
+    (flags, nonFlags, []) ->
+      getDoitFunc (listToMaybe flags) >>= \f -> pure (nonFlags, f)
+    (_, _, errs) -> ioError (userError (concat errs))
   where
-    go visited theap =
-      case theap of
-        [] -> error "Ran out of heap"
-        ((cost, spot):heap') ->
-          if S.member spot visited
-            then go visited heap'
-            else if spot == goal
-                   then cost
-                   else go (S.insert spot visited) $
-                        mergeSorted heap' $
-                        sort $
-                        map (\nb -> (cost + dataMap ! nb, nb)) (nbmap ! spot)
+    options = [Option "s" ["strategy"] (ReqArg id "STRATEGY") "Strategy"]
+    getDoitFunc Nothing = pure (p1 PQQueue)
+    getDoitFunc (Just "ListWithResort") = pure (p1 ListWithResort)
+    getDoitFunc (Just "ListWithSortedMerge") = pure (p1 ListWithSortedMerge)
+    getDoitFunc (Just "HandrolledQueue") = pure (p1 HandrolledQueue)
+    getDoitFunc (Just "PQQueue") = pure (p1 PQQueue)
+    getDoitFunc (Just "BadHandrolledQueue") = pure (p1 BadHandrolledQueue)
+    getDoitFunc _ =
+      ioError
+        (userError $
+         "unrecognized strategy; recognized: " ++
+         "ListWithResort, ListWithSortedMerge, HandrolledQueue, PQQueue, BadHandrolledQueue")
 
 main :: IO ()
 main = do
-  args <- getArgs
+  args1 <- getArgs
+  (args, doitFunc) <- processOpts args1
   let filename =
         if null args
           then "aoc15.in"
           else head args
-  datas <- map (map (read . (: []))) . words <$> readFile filename :: IO [[Int]]
+  datas <- map (map (read . (: []))) . words <$> readFile filename
   let coordsWithNeighbors =
         mkCoordsWithNeighbors (length datas) (length $ head datas)
   let allspots = concat datas
   let datamap = M.fromList $ zip (map fst coordsWithNeighbors) allspots
   let nbmap = M.fromList coordsWithNeighbors
-  let doitFunc = p1''
   print $
     doitFunc nbmap datamap (0, 0) (length datas - 1, length (head datas) - 1)
   let incrow = map ((+ 1) . (`mod` 9))
