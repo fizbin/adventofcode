@@ -26,22 +26,30 @@ peekH :: Heap a -> Maybe a
 peekH EmptyH = Nothing
 peekH (HeapH _ a _ _) = Just a
 
-popH :: Ord a => Heap a -> Maybe (a, Heap a)
-popH EmptyH = Nothing
-popH (HeapH True v top bot) =
+-- This is done so that popH and popH' can have nearly identical code,
+-- except for whether they refer to pushPopH or pushPopH'
+popHTemplate ::
+     Ord a => (Heap a -> a -> (a, Heap a)) -> Heap a -> Maybe (a, Heap a)
+popHTemplate _ EmptyH = Nothing
+popHTemplate ppf (HeapH True v top bot) =
   case (peekH top, peekH bot) of
     (Nothing, Nothing) -> Just (v, EmptyH)
     (Just a, Just b) ->
       if a < b
-        then (v, ) . (\(v', hp) -> HeapH False v' bot hp) <$> popH top
-        else (v, ) . (\(v', hp) -> HeapH False v' top hp) <$> popH bot
+        then (v, ) . (\(v', hp) -> HeapH False v' bot hp) <$>
+             popHTemplate ppf top
+        else (v, ) . (\(v', hp) -> HeapH False v' top hp) <$>
+             popHTemplate ppf bot
     _ -> error "invalid internal structure"
-popH (HeapH False v top bot) =
+popHTemplate ppf (HeapH False v top bot) =
   case popH top of
     Nothing -> error "invalid internal structure"
     Just (a, top') ->
-      let (a', bot') = pushPopH bot a
+      let (a', bot') = ppf bot a
        in Just (v, HeapH True a' top' bot')
+
+popH :: Ord a => Heap a -> Maybe (a, Heap a)
+popH = popHTemplate pushPopH
 
 pushH :: Ord a => Heap a -> a -> Heap a
 pushH EmptyH x = HeapH True x EmptyH EmptyH
@@ -67,26 +75,12 @@ pushPopH old@(HeapH isBal v top bot) x
                 in (v, HeapH isBal v' top' bot)
           else let (v', bot') = pushPopH bot x
                 in (v, HeapH isBal v' top bot')
-      _ -> error "invalid structure"
+      _ -> error "invalid internal structure"
 
 -- bad handrolled heap implementations:
 -- popH' is just popH, except that it calls pushPopH' in one case
 popH' :: Ord a => Heap a -> Maybe (a, Heap a)
-popH' EmptyH = Nothing
-popH' (HeapH True v top bot) =
-  case (peekH top, peekH bot) of
-    (Nothing, Nothing) -> Just (v, EmptyH)
-    (Just a, Just b) ->
-      if a < b
-        then (v, ) . (\(v', hp) -> HeapH False v' bot hp) <$> popH' top
-        else (v, ) . (\(v', hp) -> HeapH False v' top hp) <$> popH' bot
-    _ -> error "invalid internal structure"
-popH' (HeapH False v top bot) =
-  case popH top of
-    Nothing -> error "invalid internal structure"
-    Just (a, top') ->
-      let (a', bot') = pushPopH' bot a
-       in Just (v, HeapH True a' top' bot')
+popH' = popHTemplate pushPopH'
 
 -- This is the implementation that's just a bad idea
 pushPopH' :: Ord a => Heap a -> a -> (a, Heap a)
@@ -96,9 +90,16 @@ pushPopH' (HeapH isBal v top bot) x =
     then let (x', top') = pushPopH' top x
              (x'', bot') = pushPopH' bot x'
           in (v, HeapH isBal x'' top' bot')
-    else let (v', top') = pushPopH' top v
-             (v'', bot') = pushPopH' bot v'
-          in (x, HeapH isBal v'' top' bot')
+    else let (v', top') = pushPopH' top v     -- This bit is such a bad idea
+             (v'', bot') = pushPopH' bot v'   -- seriously, once I realized
+          in (x, HeapH isBal v'' top' bot')   -- what it implied... of course
+                                              -- it was slow. So, so slow.
+    -- the answer is that the "else" clause should be simply
+    --     else (x, Heap isBal v top bot)
+    -- or bettter yet:
+    --     else (x, old)
+    -- where "old" is a pattern bound to (HeapH isBal v top bot) on the
+    -- top line. See the definition of pushPopH above.
 
 instance (Ord a) => Semigroup (Heap a) where
   v <> EmptyH = v
