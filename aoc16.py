@@ -1,5 +1,5 @@
 """
-Advent of code day 14 in python.
+Advent of code day 16 in python.
 """
 
 import sys
