@@ -1,14 +1,14 @@
 -- stack --resolver lts-18.18 script --package multiset --package containers
 {-# LANGUAGE Haskell2010 #-}
+{-# OPTIONS_GHC -Wall #-}
 
 import Data.List
 
+--import Debug.Trace
 import Control.Applicative
-
---{-# OPTIONS_GHC -Wall #-}
+import Control.Monad
 import System.Environment
 
---import Debug.Trace
 data SNum
   = Reg Int
   | Pair SNum SNum
@@ -43,13 +43,8 @@ doExplode s = (\(_, x, _) -> x) <$> go 0 s
     go _ (Reg _) = Nothing
     go n (Pair a b)
       | n < 4 =
-        case go (n + 1) a of
-          Just (lftfunc, a', rgtfunc) -> Just (lftfunc, Pair a' (rgtfunc b), id)
-          Nothing ->
-            case go (n + 1) b of
-              Just (lftfunc, b', rgtfunc) ->
-                Just (id, Pair (lftfunc a) b', rgtfunc)
-              Nothing -> Nothing
+        (\(lf, a', rf) -> (lf, Pair a' (rf b), id)) <$> go (n + 1) a <|>
+        (\(lf, b', rf) -> (id, Pair (lf a) b', rf)) <$> go (n + 1) b
     go _ (Pair (Reg na) (Reg nb)) =
       Just (addToRightmost na, Reg 0, addToLeftmost nb)
     -- we shouldn't get to nesting level 4 and have anything other than
@@ -57,16 +52,9 @@ doExplode s = (\(_, x, _) -> x) <$> go 0 s
     go n s1 = error $ "Asked to explode " ++ show n ++ " and " ++ show s1
 
 doSplit :: SNum -> Maybe SNum
-doSplit (Reg n)
-  | n < 10 = Nothing
-doSplit (Reg n) = Just $ Pair (Reg $ n `div` 2) (Reg $ (n + 1) `div` 2)
-doSplit (Pair a b) =
-  case doSplit a of
-    Just a' -> Just $ Pair a' b
-    Nothing ->
-      case doSplit b of
-        Just b' -> Just $ Pair a b'
-        Nothing -> Nothing
+doSplit (Reg n) =
+  guard (n >= 10) >> pure (Pair (Reg $ n `div` 2) (Reg $ (n + 1) `div` 2))
+doSplit (Pair a b) = ((`Pair` b) <$> doSplit a) <|> (Pair a <$> doSplit b)
 
 normalize :: SNum -> SNum
 normalize s = maybe s normalize (doExplode s <|> doSplit s)
@@ -81,10 +69,7 @@ magnitude (Pair a b) = 3 * magnitude a + 2 * magnitude b
 main :: IO ()
 main = do
   args <- getArgs
-  let filename =
-        if null args
-          then "aoc18.in"
-          else head args
+  let filename = maybe "aoc18.in" fst $ uncons args
   datas <- words <$> readFile filename
   let snums = map read datas :: [SNum]
   print $ magnitude $ foldl' addSNum (head snums) (tail snums)
