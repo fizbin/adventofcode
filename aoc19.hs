@@ -93,15 +93,14 @@ matchScanner collective scanner = do
           rotscanner = map rot scanner
       guard (rotisize > 100)
       --trace (show rotisize) (pure ())
-      let pointPairs = (,) <$> rotscanner <*> S.toList normedP
-          runPoint (sx, sy, sz) (cx, cy, cz) = do
+      let runPoint (sx, sy, sz) (cx, cy, cz) = do
             let move = DiffPoint (cx - sx, cy - sy, cz - sz)
                 applied = applyMove move rotscanner
                 goalSize = S.size normedP + length rotscanner - 12
                 merged = foldr S.insert normedP applied
             guard (goalSize >= S.size merged)
             pure ((S.fromList applied, rotdiffs) : collective, move)
-      asum $ map (uncurry runPoint) pointPairs
+      asum $ runPoint <$> rotscanner <*> S.toList normedP
 
 runMatch :: [[Point]] -> (Set Point, [DiffPoint])
 runMatch scanners =
