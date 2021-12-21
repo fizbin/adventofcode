@@ -20,19 +20,31 @@ data DiceImpl m where
     } ->
     DiceImpl m
 
+-- tfunc x = trace ("ERR: " ++ show x) (-1,-1) :: (Int, Int)
+
 game :: forall m. Monad m => DiceImpl m -> Int -> Int -> Int -> m (Int, Int)
-game die goal start1 start2 = turn (0, 0, start1, start2, True)
+game die goal start1 start2 = either (error . show) id <$> go (pure $ Left (0, 0, start1, start2, True))
   where
+    go initU =
+      let -- maxturns based on observed fact that average score-per-turn can be just
+          -- barely above 2
+          -- specifically, it's apparently possible to score as low as 20 with 9 turns, and
+          -- as low as 48 in 21 turns. (I don't know how)
+          -- then, since turns are over both players, we need approximately 'goal' turns
+          -- total, plus 1 for good measure to make sure we recognize end-of-game
+          maxturns = max 6 goal + 1
+          doTurn u = norm die (u >>= either turn (pure . Right))
+       in iterate doTurn initU !! maxturns
     turn (score1, score2, p1, p2, isP1Turn) =
       if score1 >= goal || score2 >= goal
-        then pure (score1, score2)
+        then pure (Right (score1, score2))
         else do
           res <- norm die $ sum <$> sequence [roll die, roll die, roll die]
           let p1' = if isP1Turn then ((p1 + res - 1) `mod` 10) + 1 else p1
           let p2' = if isP1Turn then p2 else ((p2 + res - 1) `mod` 10) + 1
           let score1' = if isP1Turn then score1 + p1' else score1
           let score2' = if isP1Turn then score2 else score2 + p2'
-          norm die (pure (score1', score2', p1', p2', not isP1Turn)) >>= turn
+          pure $ Left (score1', score2', p1', p2', not isP1Turn)
 
 newtype Universe a = Universe {ununi :: [(a, Int)]} deriving (Show)
 
