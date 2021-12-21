@@ -21,9 +21,9 @@ data DiceImpl m where
     DiceImpl m
 
 game :: forall m. Monad m => DiceImpl m -> Int -> Int -> Int -> m (Int, Int)
-game die goal start1 start2 = turn (0, 0, start1, start2, True)
+game die goal start1 start2 = turn 0 0 start1 start2 True
   where
-    turn (score1, score2, p1, p2, isP1Turn) =
+    turn score1 score2 p1 p2 isP1Turn =
       if score1 >= goal || score2 >= goal
         then pure (score1, score2)
         else do
@@ -32,7 +32,7 @@ game die goal start1 start2 = turn (0, 0, start1, start2, True)
           let p2' = if isP1Turn then p2 else ((p2 + res - 1) `mod` 10) + 1
           let score1' = if isP1Turn then score1 + p1' else score1
           let score2' = if isP1Turn then score2 else score2 + p2'
-          norm die (pure (score1', score2', p1', p2', not isP1Turn)) >>= turn
+          turn score1' score2' p1' p2' $ not isP1Turn
 
 newtype Universe a = Universe {ununi :: [(a, Int)]} deriving (Show)
 
@@ -53,7 +53,7 @@ main = do
   datas <- lines <$> readFile filename
   let start1 = read $ tail $ dropWhile (/= ':') (datas !! 0)
   let start2 = read $ tail $ dropWhile (/= ':') (datas !! 1)
-  let die1 = DiceImpl (modify (+ 1) >> (\x -> 1 + (x -1 `mod` 100)) <$> get) id :: DiceImpl (State Int)
+  let die1 = DiceImpl (modify (+ 1) >> (\x -> 1 + (x -1 `mod` 100)) <$> get) id 
   let ((p1score, p2score), lastRoll) = runState (game die1 1000 start1 start2) 0
   print $ lastRoll * min p1score p2score
   let normU (Universe uni) = let m = M.toAscList $ M.fromListWith (+) uni in Universe m
