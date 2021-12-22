@@ -1,5 +1,5 @@
 """
-Advent of code 2021 day 22 in python.
+Advent of code 2021 day 22 in python. (Alternate solution based on aoc22.hs)
 """
 
 import sys
