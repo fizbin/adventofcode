@@ -34,6 +34,7 @@ import System.Environment
 -- Also, note that the only important state from one 18-instruction sequence to the
 -- next is the "z" variable - other variables are wiped out when the next sequence
 -- starts.
+
 -- Represents our 18-instruction sequence from "inp w" to "add z y"
 data Command =
   Command
@@ -83,7 +84,7 @@ readCommands s = do
   (restc, finals) <- readCommands rest
   pure (c : restc, finals)
 
--- This is what those 18 instructions compute. Outpus is new z value
+-- This is what those 18 instructions compute. Output is new z value
 runCommand :: Command -> Int -> Int -> Int
 runCommand Command {..} inp zIn =
   let inpTarget = (zIn `mod` 26) + xadd
