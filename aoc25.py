@@ -4,8 +4,6 @@ Advent of code 2021 day 25 in python.
 
 import sys
 import re
-from math import prod
-import random
 
 if __name__ == "__main__":
     with open("aoc25.in" if len(sys.argv) < 2 else sys.argv[1], encoding="utf-8") as f:
