@@ -215,7 +215,7 @@ if __name__ == "__main__":
         (min_state, max_state) = get_min_max_states(min_state, max_state, instr)
         max_states.append(max_state)
         min_states.append(min_state)
-    max_allowable_z = {}
+    max_allowable_z = {len(inlist):0}
     prev_max_z = 0
     for (n, instr) in reversed(list(enumerate(inlist))):
         max_z = get_max_allowable_z(min_states[n], max_states[n], instr, prev_max_z)
@@ -234,8 +234,6 @@ if __name__ == "__main__":
                     res = compiled(st, [d])
                     newv0 = v[0] + str(d)
                     newv1 = v[1] + str(d)
-                    if res[3] > max_allowable_z[n]:
-                        continue
                     if res in nstatemap:
                         (old_min, old_max) = nstatemap[res]
                         nstatemap[res] = (min(old_min, newv0), max(old_max, newv1))
@@ -249,7 +247,7 @@ if __name__ == "__main__":
             compiled = chain_compiled(*(compile_alu(i) for i in do_now))
             for (st, v) in statemap.items():
                 res = compiled(st, None)
-                if res[3] > max_allowable_z[n]:
+                if res[3] > max_allowable_z[n+1]:
                     continue
                 if res in nstatemap:
                     nstatemap[res] = (
