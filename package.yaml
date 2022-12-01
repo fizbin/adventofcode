@@ -1,0 +1,11 @@
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- multiset
+- mtl
+- pqueue
+- vector
+- split
+executable:
+  main: aoc1.hs
+  source-dirs: .
