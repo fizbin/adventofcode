@@ -9,3 +9,4 @@ dependencies:
 executable:
   main: aoc1.hs
   source-dirs: .
+name: aoc2022
