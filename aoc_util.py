@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 
+
 def get_data(problem_num: int) -> str:
     infilename = f"aoc{problem_num}.in"
     if len(sys.argv) >= 2:
@@ -12,12 +13,16 @@ def get_data(problem_num: int) -> str:
     with open(infilename, encoding="utf-8") as infile:
         return infile.read()
 
+
 def get_data_lines(problem_num: int) -> List[str]:
     return get_data(problem_num).splitlines()
 
+
 def get_data_paras(problem_num: int) -> List[str]:
-    return [x if x.endswith("\n") else f"{x}\n"
-            for x in get_data(problem_num).split("\n\n")]
+    return [
+        x if x.endswith("\n") else f"{x}\n" for x in get_data(problem_num).split("\n\n")
+    ]
+
 
 def numbers(in_string, is_hex=False) -> List[int]:
     regex = r"\b\d+\b"
@@ -27,8 +32,10 @@ def numbers(in_string, is_hex=False) -> List[int]:
         base = 16
     return [int(x, base) for x in re.findall(regex, in_string)]
 
+
 def chargrid(in_string: str) -> List[List[str]]:
     return [list(line) for line in in_string.splitlines()]
+
 
 def get_rotations(ndims, reflections=False, dtype=None):
     idmat = np.identity(ndims, dtype=dtype)

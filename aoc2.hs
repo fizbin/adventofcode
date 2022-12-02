@@ -1,5 +1,4 @@
 import System.Environment
-import Data.List
 
 -- The huge numbers are things that'll make the total stand out as "something went wrong"
 
