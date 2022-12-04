@@ -1,11 +1,12 @@
 import System.Environment
 import Data.Set (fromList, intersection, findMin)
-import Data.Char (ord)
-import Debug.Trace
+import Data.Char (ord, isAsciiUpper, isAsciiLower)
+--import Debug.Trace
 
 priority :: Char -> Int
-priority x | x >= 'a' && x <= 'z' = 1 + ord x - ord 'a'
-priority x | x >= 'A' && x <= 'Z' = 27 + ord x - ord 'A'
+priority x | isAsciiLower x = 1 + ord x - ord 'a'
+priority x | isAsciiUpper x = 27 + ord x - ord 'A'
+priority _ = error "Priority asked of bad value"
 
 scores1 = map comm
   where
@@ -19,7 +20,7 @@ scores2 [] = []
 scores2 (x:y:z:s) = doone x y z : scores2 s
   where
     doone x y z = priority $ findMin $ intersection (fromList x) $ intersection (fromList y) (fromList z)
-    
+scores2 _ = error "scores2 asked of bad value; list not multiple of 3?"
 
 main :: IO ()
 main = do
