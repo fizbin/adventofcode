@@ -17,10 +17,10 @@ bad2 (a, b, c, d) = not $ (b < c) || (d < a)
 
 main :: IO ()
 main = do
-  args <- getArgs
-  let filename = if null args then "aoc4.in" else head args
-  s <- lines <$> readFile filename
-  let parsed = map parseLine s
-  --print $ map parseLine s
-  print $ length $ filter bad1 parsed
-  print $ length $ filter bad2 parsed
+    args <- getArgs
+    let filename = if null args then "aoc4.in" else head args
+    s <- lines <$> readFile filename
+    let parsed = map parseLine s
+    --print $ map parseLine s
+    print $ length $ filter bad1 parsed
+    print $ length $ filter bad2 parsed
