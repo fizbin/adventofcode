@@ -31,3 +31,5 @@ for order in orders:
     moved = real_stacks[von-1][0:n]
     real_stacks[von-1][0:n] = []
     real_stacks[zu-1] = moved + real_stacks[zu-1]
+
+print(''.join(x[0] if x else '' for x in real_stacks))
