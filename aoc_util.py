@@ -119,5 +119,23 @@ def astar(
     return None
 
 
+def numpy_shift(array, shiftsz, axis, fill):
+    foo = np.roll(array, shift=shiftsz, axis=axis)
+    if shiftsz != 0:
+        maxidx = np.shape(foo)[axis]
+        filltup = [slice(None)] * len(np.shape(foo))
+        if abs(shiftsz) >= maxidx:
+            foo[tuple(filltup)] = fill
+        else:
+            if shiftsz > 0:
+                for target in range(shiftsz):
+                    filltup[axis] = target
+                    foo[tuple(filltup)] = fill
+            else:
+                for target in range(shiftsz, 0):
+                    filltup[axis] = target
+                    foo[tuple(filltup)] = fill
+    return foo
+
 # ideas for utility functions:
 # - astar and/or dijkstra
