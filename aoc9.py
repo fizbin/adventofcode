@@ -4,16 +4,6 @@ import re
 
 data = get_data_lines(9)
 
-dataee = '''
-R 4
-U 4
-L 3
-D 1
-R 4
-D 1
-L 5
-R 2
-'''.strip().splitlines()
 visited = set()
 
 def new_pos(hd, tl):
