@@ -9,38 +9,38 @@ for row in range(len(data)):
     sofar = -1
     for col in range(len(data[0])):
         if trees[row][col] > sofar:
-            visible_trees.add((row,col))
+            visible_trees.add((row, col))
             sofar = trees[row][col]
     sofar = -1
     for col in reversed(list(range(len(data[0])))):
         if trees[row][col] > sofar:
-            visible_trees.add((row,col))
+            visible_trees.add((row, col))
             sofar = trees[row][col]
 
 for col in range(len(data[0])):
     sofar = -1
     for row in range(len(data)):
         if trees[row][col] > sofar:
-            visible_trees.add((row,col))
+            visible_trees.add((row, col))
             sofar = trees[row][col]
     sofar = -1
     for row in reversed(list(range(len(data)))):
         if trees[row][col] > sofar:
-            visible_trees.add((row,col))
+            visible_trees.add((row, col))
             sofar = trees[row][col]
-    
+
 print(len(visible_trees))
 
 trees = np.array(trees).astype(int)
 
-scores = np.zeros(np.shape(trees),dtype=int) * np.array([[[1]]] * 4)
+scores = np.zeros(np.shape(trees), dtype=int) * np.array([[[1]]] * 4)
 
 for (scidx, d, axn) in [(0, 1, 0), (1, -1, 0), (2, 1, 1), (3, -1, 1)]:
     shifted = np.copy(trees)
     mask = np.ones(shape=np.shape(trees), dtype=int)
     while mask.any():
         shifted = numpy_shift(shifted, d, axn, 99)
-        scores[scidx] += mask*((shifted < 90).astype(int))
+        scores[scidx] += mask * ((shifted < 90).astype(int))
         mask *= (trees > shifted).astype(int)
 
 # There's probably a fancy numpy way to say "broadcast product across the first index",

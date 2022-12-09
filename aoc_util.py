@@ -137,5 +137,6 @@ def numpy_shift(array, shiftsz, axis, fill):
                     foo[tuple(filltup)] = fill
     return foo
 
+
 # ideas for utility functions:
 # - astar and/or dijkstra
