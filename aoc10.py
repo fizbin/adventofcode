@@ -1,6 +1,4 @@
-from aoc_util import *
-import re
-import numpy as np
+from aoc_util import get_data_lines
 
 data = get_data_lines(10)
 xvals = [1]
