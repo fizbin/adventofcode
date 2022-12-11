@@ -2,9 +2,8 @@
 
 from aoc_util import get_data
 
-data = get_data(1)
-data = data.split("\n\n")
-data = [[int(x) for x in d.splitlines()] for d in data]
+data0 = get_data(1).split("\n\n")
+data = [[int(x) for x in d.splitlines()] for d in data0]
 
 print(max(sum(foo) for foo in data))
 

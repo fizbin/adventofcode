@@ -38,11 +38,11 @@ score2d lst = mul2d (lrcheck lst) (transpose (lrcheck (transpose lst)))
 
 main :: IO ()
 main = do
-  args <- getArgs
-  let filename =
-        if null args
-          then "aoc8.in"
-          else head args
-  s <- lines <$> readFile filename
-  print $ sum $ map (length . filter id) $ visible2d s
-  print $ maximum $ map maximum $ score2d s
+    args <- getArgs
+    let filename =
+            if null args
+                then "aoc8.in"
+                else head args
+    s <- lines <$> readFile filename
+    print $ sum $ map (length . filter id) $ visible2d s
+    print $ maximum $ map maximum $ score2d s

@@ -18,9 +18,9 @@ def new_pos(hd, tl):
 
 hd = 0 + 0j
 tl = hd
-for (direction, multi) in [li.split() for li in data]:
+for (direction, multistr) in [li.split() for li in data]:
     unit = {"U": 1, "D": -1, "L": 1j, "R": -1j}[direction]
-    multi = int(multi)
+    multi = int(multistr)
     for _ in range(multi):
         hd += unit
         tl = new_pos(hd, tl)
@@ -30,9 +30,9 @@ print(len(visited))
 
 visited = set()
 spots = [0 + 0j] * 10
-for (direction, multi) in [li.split() for li in data]:
+for (direction, multistr) in [li.split() for li in data]:
     unit = {"U": 1, "D": -1, "L": 1j, "R": -1j}[direction]
-    multi = int(multi)
+    multi = int(multistr)
     for _ in range(multi):
         spots[0] += unit
         for idx in range(1, 10):

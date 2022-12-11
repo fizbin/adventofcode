@@ -1,9 +1,10 @@
 from aoc_util import get_data_lines
+from typing import List
 import re
 
 data = get_data_lines(7)
 dir_total_sizes = {"": 0}
-cwd = []
+cwd: List[str] = []
 for line in data[1:]:
     if line.startswith("$ cd"):
         if line == "$ cd ..":
@@ -17,6 +18,7 @@ for line in data[1:]:
         dir_total_sizes[newdirname] = 0
     else:
         m = re.match("(\d+) (\S+)$", line)
+        assert m, line
         (sizestr, filename) = (m.group(1), m.group(2))
         size = int(sizestr)
         for idx in range(len(cwd) + 1):

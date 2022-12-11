@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+from typing import List
 from aoc_util import get_data_paras, numbers, chargrid
 import copy
 
-(stacks, orders) = get_data_paras(5)
-stacks = chargrid(stacks)
+(stacks0, orders0) = get_data_paras(5)
+stacks = chargrid(stacks0)
 
-real_stacks = [[] for _ in range(1, 10)]
+real_stacks: List[List[str]] = [[] for _ in range(1, 10)]
 for row in range(8):
     for col in range(9):
         ch = stacks[row][1 + 4 * col]
@@ -15,7 +16,7 @@ for row in range(8):
 
 oreal_stacks = copy.deepcopy(real_stacks)
 
-orders = orders.splitlines()
+orders = orders0.splitlines()
 for order in orders:
     (n, von, zu) = numbers(order)
     moved = real_stacks[von - 1][0:n]

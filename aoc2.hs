@@ -1,7 +1,6 @@
 import System.Environment
 
 -- The huge numbers are things that'll make the total stand out as "something went wrong"
-
 score1 s = scoreMine (tail $ tail s) + scoreWLD s
   where
     scoreMine "X" = 1
@@ -38,8 +37,11 @@ score2 s = scoreMine (tail $ tail s) + scoreWLD s
 
 main :: IO ()
 main = do
-  args <- getArgs
-  let filename = if null args then "aoc2.in" else head args
-  s <- lines <$> readFile filename
-  print $ sum $ map score1 s
-  print $ sum $ map score2 s
+    args <- getArgs
+    let filename =
+            if null args
+                then "aoc2.in"
+                else head args
+    s <- lines <$> readFile filename
+    print $ sum $ map score1 s
+    print $ sum $ map score2 s

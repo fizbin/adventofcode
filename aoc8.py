@@ -31,17 +31,17 @@ for col in range(len(data[0])):
 
 print(len(visible_trees))
 
-trees = np.array(trees).astype(int)
+trees2 = np.array(trees).astype(int)
 
-scores = np.zeros(np.shape(trees), dtype=int) * np.array([[[1]]] * 4)
+scores = np.zeros(np.shape(trees2), dtype=int) * np.array([[[1]]] * 4)
 
 for (scidx, d, axn) in [(0, 1, 0), (1, -1, 0), (2, 1, 1), (3, -1, 1)]:
-    shifted = np.copy(trees)
-    mask = np.ones(shape=np.shape(trees), dtype=int)
+    shifted = np.copy(trees2)
+    mask = np.ones(shape=np.shape(trees2), dtype=int)
     while mask.any():
         shifted = numpy_shift(shifted, d, axn, 99)
         scores[scidx] += mask * ((shifted < 90).astype(int))
-        mask *= (trees > shifted).astype(int)
+        mask *= (trees2 > shifted).astype(int)
 
 # There's probably a fancy numpy way to say "broadcast product across the first index",
 # but I don't know what it is

@@ -1,7 +1,7 @@
 import itertools
 import re
 import sys
-from typing import List, Callable, Optional, Sequence, Tuple, TypeVar
+from typing import List, Callable, Optional, Sequence, Set, Tuple, TypeVar
 import heapq
 
 import numpy as np
@@ -94,15 +94,17 @@ def rolling(n, iterable):
 
 def astar(
     start: X,
-    goal: X,
-    get_neighbors: Callable[[X], Sequence[Tuple[X, int]]],
-    get_guess: Callable[[X], int],
+    goalf: Callable[[X], bool],
+    neighborf: Callable[[X], Sequence[Tuple[X, int]]],
+    estimatef: Callable[[X], int] = lambda _: 0,
 ) -> Optional[Tuple[int, List[X]]]:
-    workq: List[Tuple[int, Tuple, X]]
-    workq = [(0, (), start)]
+    visited: Set[X] = set()
+    workq: List[Tuple[int, int, Tuple, X]]
+    workq = [(0, 0, (), start)]
     while workq:
-        (cost_so_far, path_tup, pos) = heapq.heappop(workq)
-        if pos == goal:
+        (_, cost_so_far, path_tup, pos) = heapq.heappop(workq)
+        visited.add(pos)
+        if goalf(pos):
             path = []
             while len(path_tup) == 2:
                 (a, b) = path_tup
@@ -111,11 +113,18 @@ def astar(
             path.append(start)
             path.reverse()
             return (cost_so_far, path)
-        for (next_spot, dist) in get_neighbors(pos):
-            estimate = get_guess(next_spot)
-            heapq.heappush(
-                workq, (cost_so_far + estimate + dist, (next_spot, path_tup), next_spot)
-            )
+        for (next_spot, dist) in neighborf(pos):
+            if next_spot not in visited:
+                estimate = estimatef(next_spot)
+                heapq.heappush(
+                    workq,
+                    (
+                        cost_so_far + estimate + dist,
+                        cost_so_far + dist,
+                        (next_spot, path_tup),
+                        next_spot,
+                    ),
+                )
     return None
 
 
@@ -136,7 +145,3 @@ def numpy_shift(array, shiftsz, axis, fill):
                     filltup[axis] = target
                     foo[tuple(filltup)] = fill
     return foo
-
-
-# ideas for utility functions:
-# - astar and/or dijkstra
