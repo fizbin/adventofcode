@@ -103,6 +103,8 @@ def astar(
     workq = [(0, 0, (), start)]
     while workq:
         (_, cost_so_far, path_tup, pos) = heapq.heappop(workq)
+        if pos in visited:
+            continue
         visited.add(pos)
         if goalf(pos):
             path = []
