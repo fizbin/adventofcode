@@ -11,14 +11,8 @@ instance Read ListIsh where
       where
         listyreads "" = []
         listyreads (' ' : s) = listyreads s
-        listyreads ('[' : s) = first Lo <$> listbody s
+        listyreads s@('[' : _) = first Lo <$> readList s
         listyreads s = first Li <$> reads s
-        listbody (' ' : s) = listbody s
-        listbody (']' : s) = [([], s)]
-        listbody s =
-            let restr = listyreads s
-             in [(a : b, s'') | (a, ',' : s') <- restr, (b, s'') <- listbody s']
-                    ++ [([b], s') | (b, ']' : s') <- restr]
 
 isOrder :: ListIsh -> ListIsh -> Maybe Bool
 isOrder (Li x) (Li y) = case compare x y of
