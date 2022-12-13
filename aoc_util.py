@@ -30,10 +30,10 @@ def get_data_paras(problem_num: int) -> List[str]:
 
 
 def numbers(in_string, is_hex=False) -> List[int]:
-    regex = r"\b\d+\b"
+    regex = r"-?\d+"
     base = 10
     if is_hex:
-        regex = r"\b[0-9A-Fa-f]+\b"
+        regex = r"-?(?:0x)?[0-9A-Fa-f]+"
         base = 16
     return [int(x, base) for x in re.findall(regex, in_string)]
 
