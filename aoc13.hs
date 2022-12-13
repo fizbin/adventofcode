@@ -7,12 +7,7 @@ import System.Environment (getArgs)
 data ListIsh = Li Int | Lo [ListIsh] deriving (Show, Eq)
 
 instance Read ListIsh where
-    readsPrec _ = listyreads
-      where
-        listyreads "" = []
-        listyreads (' ' : s) = listyreads s
-        listyreads s@('[' : _) = first Lo <$> readList s
-        listyreads s = first Li <$> reads s
+    readsPrec _ s = (first Li <$> reads s) ++ (first Lo <$> readList s)
 
 isOrder :: ListIsh -> ListIsh -> Maybe Bool
 isOrder (Li x) (Li y) = case compare x y of
