@@ -9,6 +9,7 @@ data ListIsh = Li Int | Lo [ListIsh] deriving (Show, Eq)
 instance Read ListIsh where
     readsPrec _ = listyreads
       where
+        listyreads "" = []
         listyreads (' ' : s) = listyreads s
         listyreads ('[' : s) = first Lo <$> listbody s
         listyreads s = first Li <$> reads s
