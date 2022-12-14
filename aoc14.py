@@ -1,8 +1,4 @@
-from aoc_util import *
-from functools import reduce, cmp_to_key
-import json
-import re
-import numpy as np
+from aoc_util import numbers, get_data_lines
 import copy
 
 data = get_data_lines(14)

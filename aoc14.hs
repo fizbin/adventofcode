@@ -1,10 +1,8 @@
 {-# LANGUAGE TupleSections #-}
 
-import Control.Applicative
 import Control.Arrow
 import qualified Data.Set as S
 import System.Environment (getArgs)
--- import Debug.Trace
 
 parseLine :: String -> [(Int, Int)]
 parseLine line = do
@@ -28,31 +26,25 @@ parseLine line = do
                     else map (,snd next) $ min2max (fst start) (fst next)
         mypts ++ go next s''
 
-dropSand :: Int -> S.Set (Int, Int) -> (S.Set (Int, Int), Bool)
+dropSand :: Int -> S.Set (Int, Int) -> Either (S.Set (Int, Int)) (S.Set (Int, Int))
 dropSand maxy grid = case go (500, 0) of
-    Just finalsand -> (S.insert finalsand grid, False)
-    Nothing -> (grid, True)
+    Just finalsand -> Left $ S.insert finalsand grid
+    Nothing -> Right grid
   where
     go :: (Int, Int) -> Maybe (Int, Int)
     go spot | snd spot > maxy = Nothing
     go spot =
         let [t1, t2, t3] = map ($ spot) [second succ, pred *** succ, succ *** succ]
-            tspot sp = if sp `S.member` grid then Nothing else Just sp
-            nspot = tspot t1 <|> tspot t2 <|> tspot t3
-         in case nspot of
-                Nothing -> Just spot
-                Just next -> go next
+            sp +:+ sp2 = if sp `S.notMember` grid then go sp else sp2
+            infixr 5 +:+
+         in t1 +:+ t2 +:+ t3 +:+ Just spot
 
 dropAllSand :: Int -> S.Set (Int, Int) -> S.Set (Int, Int)
-dropAllSand maxy grid0 = case dropSand maxy grid0 of
-    (grid1, True) -> grid1
-    (grid1, False) -> dropAllSand maxy grid1
+dropAllSand maxy grid0 = either (dropAllSand maxy) id $ dropSand maxy grid0
 
 dropAllSand' :: Int -> S.Set (Int, Int) -> S.Set (Int, Int)
 dropAllSand' _ grid0 | (500, 0) `S.member` grid0 = grid0
-dropAllSand' maxy grid0 = case dropSand maxy grid0 of
-    (_, True) -> error "Bottom bar not long enough"
-    (grid1, False) -> dropAllSand' maxy grid1
+dropAllSand' maxy grid0 = either (dropAllSand' maxy) (error "Bottom Bar not long enough") $ dropSand maxy grid0
 
 main :: IO ()
 main = do
