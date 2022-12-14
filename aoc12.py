@@ -1,13 +1,12 @@
-from aoc_util import *
-from functools import reduce
-import copy
-import re
-import numpy as np
+"""Advent of Code 2022 day 12"""
+
+from aoc_util import chargrid, get_data, astar
+
+# pylint: disable=invalid-name
 
 data = chargrid(get_data(12))
 
 start = None
-end = None
 for row in range(len(data)):
     for col in range(len(data[0])):
         if data[row][col] == "S":
@@ -50,8 +49,12 @@ def make_neighborf(part1):
     return neighborf
 
 
-(d, path) = astar(start, lambda p: data[p[0]][p[1]] == "E", make_neighborf(True))
-print(d)
+(d, path) = astar(start=start,
+                  goalf=lambda p: data[p[0]][p[1]] == "E",
+                  neighbor_distf=make_neighborf(True))
+print(d, path[0], path[-1])
 
-(d, path) = astar(path[-1], lambda p: data[p[0]][p[1]] in "aS", make_neighborf(False))
-print(d)
+(d, path) = astar(start=path[-1],
+                  goalf=lambda p: data[p[0]][p[1]] in "aS",
+                  neighbor_distf=make_neighborf(False))
+print(d, path[0], path[-1])

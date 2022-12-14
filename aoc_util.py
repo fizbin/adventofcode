@@ -93,14 +93,47 @@ def rolling(n, iterable):
 
 
 def astar(
-    start: X,
+    *,
+    start: Optional[X] = None,
+    starts: Optional[Sequence[X]] = None,
     goalf: Callable[[X], bool],
-    neighborf: Callable[[X], Sequence[Tuple[X, int]]],
+    neighborf: Optional[Callable[[X], Sequence[X]]] = None,
+    neighbor_distf: Optional[Callable[[X], Sequence[Tuple[X, int]]]] = None,
     estimatef: Callable[[X], int] = lambda _: 0,
 ) -> Optional[Tuple[int, List[X]]]:
+    """
+    Dijkstra/A* search. All arguments use named parameters.
+
+    Args:
+        start: Single start point. Must give one of 'start' or 'starts'.
+        starts: Start points. Must give one of 'start' or 'starts'.
+        goalf: Identify goal.
+        neighborf: Neighbors. Must give one of 'neighbors' or 'neighbor_distf'.
+                   Assumed distance "1" to all neighbors.
+        neighbor_distf: (Neighbor, distance) tuples
+        estimatef: Estimate of remaining dist from spot. Must be underestimate
+
+    Returns:
+        None if no path found; otherwise (total_distance, path_to_goal)
+        path_to_goal[0] is the start that won; path_to_goal[-1] is the goal reached
+    """
+    assert (start is None) != (
+        starts is None
+    ), "Exactly one of start, starts must be given"
+    assert (neighborf is None) != (
+        neighbor_distf is None
+    ), "Exactly one of neighborf and neighbor_distf must be given"
+    if starts is None:
+        starts = [start]
+    if neighbor_distf is None:
+
+        def default_neighbor_dist(spot):
+            return [(n, 1) for n in neighborf(spot)]
+
+        neighbor_distf = default_neighbor_dist
     visited: Set[X] = set()
     workq: List[Tuple[int, int, Tuple, X]]
-    workq = [(0, 0, (), start)]
+    workq = [(0, 0, (spot, ()), spot) for spot in sorted(starts)]
     while workq:
         (_, cost_so_far, path_tup, pos) = heapq.heappop(workq)
         if pos in visited:
@@ -109,13 +142,12 @@ def astar(
         if goalf(pos):
             path = []
             while len(path_tup) == 2:
-                (a, b) = path_tup
-                path.append(a)
-                path_tup = b
-            path.append(start)
+                (car, cdr) = path_tup
+                path.append(car)
+                path_tup = cdr
             path.reverse()
             return (cost_so_far, path)
-        for (next_spot, dist) in neighborf(pos):
+        for (next_spot, dist) in neighbor_distf(pos):
             if next_spot not in visited:
                 estimate = estimatef(next_spot)
                 heapq.heappush(
