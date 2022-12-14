@@ -36,15 +36,12 @@ while True:
             alldone = True
             break
         if grid.get((sandloc[0], sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0], sandloc[1] + 1)
             continue
         if grid.get((sandloc[0] - 1, sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0] - 1, sandloc[1] + 1)
             continue
         if grid.get((sandloc[0] + 1, sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0] + 1, sandloc[1] + 1)
             continue
         break
@@ -73,15 +70,12 @@ while True:
             alldone = True
             break
         if grid.get((sandloc[0], sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0], sandloc[1] + 1)
             continue
         if grid.get((sandloc[0] - 1, sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0] - 1, sandloc[1] + 1)
             continue
         if grid.get((sandloc[0] + 1, sandloc[1] + 1)) is None:
-            couldmove = True
             sandloc = (sandloc[0] + 1, sandloc[1] + 1)
             continue
         break
