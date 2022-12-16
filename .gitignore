@@ -14,6 +14,7 @@ aoc[0-9][0-9][a-z]
 .DS_Store
 /.vscode
 /venv
+/venv311
 /session.txt
 /*.leaderboard.json
 /RefreshLeaderboards.ps1
