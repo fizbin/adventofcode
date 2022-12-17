@@ -62,6 +62,8 @@ def movedown(grid):
 data = get_data_lines(17)[0].strip()
 
 # data = '>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>'
+# data = ">>>>>>>>>>>>>>>>>>>>>>>><<<<<<<>>>>>>>>>>>>>>>>>>"
+# data = '<'
 
 shapespec = """####
 
@@ -136,13 +138,13 @@ for pieceidx in range(2022):
     if (jetidx % len(data), pieceidx % 5, lroff) in seenoffsat:
         oldpieceidx = seenoffsat[(jetidx % len(data), pieceidx % 5, lroff)]
         patlen = pieceidx - oldpieceidx
-        # print(f"patlen {patlen} found at {pieceidx} now {currheight} then {seenatoffs[oldpieceidx]}")
-        njumps = (1000000000000 - pieceidx) // patlen
+        njumps = (1000000000000 - 1 - pieceidx) // patlen
         heightgain1 = njumps * (currheight - seenatoffs[oldpieceidx])
         heightgain2 = (
-            seenatoffs[oldpieceidx + (1000000000000 - pieceidx) % patlen]
+            seenatoffs[oldpieceidx + (1000000000000 - 1 - pieceidx) % patlen]
             - seenatoffs[oldpieceidx]
         )
+        # print(f"patlen {patlen} found at {pieceidx} now {currheight} then {seenatoffs[oldpieceidx]} small height gain {heightgain2}")
         # a list because we detect a loop prematurely. Make sure we only take
         # the answer from far enough to have a real loop
         p2ans.append(currheight + heightgain1 + heightgain2)
