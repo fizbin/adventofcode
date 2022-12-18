@@ -6,6 +6,8 @@ dependencies:
 - pqueue
 - vector
 - split
+- text
+- bytestring
 executable:
   main: aoc1.hs
   source-dirs: .
