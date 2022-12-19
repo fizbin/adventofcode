@@ -33,9 +33,9 @@ main = do
             let a = minimum allnums
                 b = maximum allnums
              in ( \(x, y, z) ->
-                       a - 2 <= x && x <= b + 2
-                    && a - 2 <= y && y <= b + 2
-                    && a - 2 <= z && z <= b + 2
+                       a - 1 <= x && x <= b + 1
+                    && a - 1 <= y && y <= b + 1
+                    && a - 1 <= z && z <= b + 1
                 )
     let nbhd pt = neigh3d pt ++ [pt]
     -- Experimentally, using two points as a start is much faster than using one.
