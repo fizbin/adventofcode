@@ -7,14 +7,16 @@ import heapq
 
 # under the situation of infinite ore, what's the max geode?
 def pot_geo_total(time, robos, rocks, blueprint, maxt):
-    (_a, crocks, orocks, grocks) = rocks
-    (_a, crobos, orobos, grobos) = robos
+    (_, crocks, orocks, grocks) = rocks
+    (_, crobos, orobos, grobos) = robos
     # if time == 8 and sum(robos) == 1:
     #     breakpoint()
     for tick in range(time, maxt):
         grocks += grobos
         orocks += orobos
         crocks += crobos
+        # Yeah, I should only be making one robot here, not potentially 3
+        # so the result is an overestimate. That's fine.
         if orocks - orobos >= blueprint[3][2]:
             orocks -= blueprint[3][2]
             grobos += 1
@@ -27,6 +29,9 @@ def pot_geo_total(time, robos, rocks, blueprint, maxt):
 
 # ore, clay, obsidian, geode
 def do_run(blueprintn, blueprint, maxt):
+    # heap is full of (sortkey, time, robots, rocks)
+    # After the initial element, sortkey is -(potential_geodes), where
+    # potential_geodes is as calculated by pot_geo_total
     hp = [(0, 0, (1, 0, 0, 0), (0, 0, 0, 0))]
     while hp:
         (npot, time, robos, rocks) = heapq.heappop(hp)
