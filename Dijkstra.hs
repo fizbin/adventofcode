@@ -3,6 +3,7 @@ module Dijkstra where
 import Data.List
 import qualified Data.Set as S
 
+-- conventions as with heapq (i.e., popH takes smalles out and returns it)
 -- HeapH v top bot -- top has at most 1 more than bot
 data Heap a
   = EmptyH
