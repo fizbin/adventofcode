@@ -1,4 +1,4 @@
-$daynum = 20
+$daynum = 21
 $downloadToPath = "aoc$daynum.in"
 $remoteFileLocation = "https://adventofcode.com/2022/day/$daynum/input"
 
