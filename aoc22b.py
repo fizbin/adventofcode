@@ -95,7 +95,7 @@ def part2(grid, moves):
     facestarts = list(
         filter(
             lambda x: x in gridh,
-            [r * gridsize + c * gridsize * 1j for c in range(gridsize) for r in range(gridsize)],
+            [r * gridsize + c * gridsize * 1j for c in range(10) for r in range(10)],
         )
     )
     start = min(facestarts, key=lambda z: (z.real, z.imag))
@@ -144,7 +144,7 @@ def part2(grid, moves):
                     )
                     foundstarts.append(tststart)
     assert len(faces) == 6
-    assert len(set(f.localz for f in faces)) == 6
+    assert len(set(f.localz for f in faces)) == 6, f"Some faces folded on top of each other; only {len(set(f.localz for f in faces))} faces total"
     # make jumps
     for (face, to_face) in itertools.combinations(faces, 2):
         if face.localz == tuptimes(to_face.localz, -1):
