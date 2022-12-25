@@ -30,12 +30,12 @@ def get_data_paras(problem_num: int) -> List[str]:
 
 
 def numbers(in_string, is_hex=False) -> List[int]:
-    regex = r"-?\d+"
+    regex = r"(?:(?<=\W)-)?\b\d+"
     base = 10
     if is_hex:
-        regex = r"-?(?:0x)?[0-9A-Fa-f]+"
+        regex = r"(?:(?<=\W)-)?\b(?:0x)?[0-9A-Fa-f]+"
         base = 16
-    return [int(x, base) for x in re.findall(regex, in_string)]
+    return [int(x, base) for x in re.findall(regex, ' ' + in_string)]
 
 
 def chargrid(in_string: str) -> List[List[str]]:
