@@ -20,42 +20,33 @@ def get_entry_point(grid):
 def overlay(shape, grid, offset):
     (offr, offc) = offset
     shape_shape = np.shape(shape)
-    grid[offr : offr + shape_shape[0], offc : offc + shape_shape[1]] = shape
+    grid[offr : offr + shape_shape[0], offc : offc + shape_shape[1]] |= shape
 
 
-def moveleft(grid):
-    if not (grid == 1).any():
+def moveleft(offset, shape, grid):
+    (offr, offc) = offset
+    if offc == 0:
         return False
-    if (grid[..., 0] == 1).any():
+    if (grid[offr:offr + shape.shape[0], offc-1 : offc - 1 + shape.shape[1]] * shape).any():
         return False
-    rolled_left = np.roll(grid, -1, 1)
-    if ((rolled_left == 1) & (grid == 2)).any():
-        return False
-    grid[:] = np.where((grid == 1) | (rolled_left == 1), rolled_left % 2, grid)
     return True
 
 
-def moveright(grid):
-    if not (grid == 1).any():
+def moveright(offset, shape, grid):
+    (offr, offc) = offset
+    if offc + shape.shape[1] == 7:
         return False
-    if (grid[..., -1] == 1).any():
+    if (grid[offr:offr + shape.shape[0], offc+1 : offc + 1 + shape.shape[1]] * shape).any():
         return False
-    rolled_right = np.roll(grid, 1, 1)
-    if ((rolled_right == 1) & (grid == 2)).any():
-        return False
-    grid[:] = np.where((grid == 1) | (rolled_right == 1), rolled_right % 2, grid)
     return True
 
 
-def movedown(grid):
-    if not (grid == 1).any():
+def movedown(offset, shape, grid):
+    (offr, offc) = offset
+    if offr == 0:
         return False
-    if (grid[0, ...] == 1).any():
+    if (grid[offr-1:offr-1 + shape.shape[0], offc : offc + shape.shape[1]] * shape).any():
         return False
-    rolled_down = np.roll(grid, -1, 0)
-    if ((rolled_down == 1) & (grid == 2)).any():
-        return False
-    grid[:] = np.where((grid == 1) | (rolled_down == 1), rolled_down % 2, grid)
     return True
 
 
@@ -94,8 +85,6 @@ shapes = [np.array(s, dtype=np.uint8) for s in shapes_as_numlists]
 
 grid = np.zeros((6000, 7), dtype=np.uint8)
 
-showx = {0: ".", 1: "@", 2: "#"}
-
 seenoffsat = {}
 seenatoffs = {}
 p2ans = []
@@ -103,7 +92,7 @@ p2ans = []
 jetidx = 0
 for pieceidx in range(2022):
     shape = shapes[pieceidx % 5]
-    overlay(shape, grid, get_entry_point(grid))
+    offset = list(get_entry_point(grid))
     lroff = 0
     while True:
         jetdir = data[jetidx % len(data)]
@@ -113,22 +102,27 @@ for pieceidx in range(2022):
         #         print("1: " + ''.join(showx[grid[r][c]] for c in range(7)))
         #     print()
         if jetdir == "<":
-            if moveleft(grid):
+            if moveleft(offset, shape, grid):
+                offset[1] -= 1
                 lroff -= 1
         else:
-            if moveright(grid):
+            if moveright(offset, shape, grid):
+                offset[1] += 1
                 lroff += 1
         # if pieceidx == 38:
         #     for r in reversed(range(60, 75)):
         #         print("2: " + ''.join(showx[grid[r][c]] for c in range(7)))
         #     print()
-        if not movedown(grid):
+        if movedown(offset, shape, grid):
+            offset[0] -= 1
+        else:
             break
         # if pieceidx == 38:
         #     for r in reversed(range(60, 75)):
         #         print("3: " + ''.join(showx[grid[r][c]] for c in range(7)))
         #     print()
         # sys.exit()
+    overlay(shape, grid, offset)
     grid = np.where(grid > 0, 2, 0)
     currheight = get_entry_point(grid)[0] - 3
     # print("!", pieceidx, jetidx % len(data), pieceidx % 5, currheight)
