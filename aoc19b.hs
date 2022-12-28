@@ -2,8 +2,8 @@ import Control.Monad
 import Data.Char (isDigit)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, mapMaybe)
-import System.Environment (getArgs)
 import qualified Data.PQueue.Min as PQ
+import System.Environment (getArgs)
 
 -- import Debug.Trace
 
@@ -54,16 +54,18 @@ maxGeods 0 _ rocks _ = geod rocks
 maxGeods timeLeft robots rocks rules =
     let nrocks = zipWithT (+) robots rocks
         oreR = ore robots + 1
-        clayR = clay robots + 1
+        clayR = min (clay robots + 1) (clay $ obsid rules)
         (obsidR, nrocks') =
-            if clay rocks >= clay (obsid rules)
+            if clay rocks >= clay (obsid rules) && obsid robots < obsid (geod rules)
                 then (obsid robots + 1, zipWithT (-) nrocks (0, clay (obsid rules), 0, 0))
                 else (obsid robots, nrocks)
         (geodR, nrocks'') =
             if obsid rocks >= obsid (geod rules)
-                then (geod robots + 1, zipWithT (-) nrocks (0, 0, obsid (geod rules), 0))
+                then (geod robots + 1, zipWithT (-) nrocks' (0, 0, obsid (geod rules), 0))
                 else (geod robots, nrocks')
-     in maxGeods (timeLeft - 1) (oreR, clayR, obsidR, geodR) nrocks'' rules
+     in if obsid robots >= obsid (geod rules)
+            then geod rocks + sum [geod robots .. geod robots + timeLeft - 1]
+            else maxGeods (timeLeft - 1) (oreR, clayR, obsidR, geodR) nrocks'' rules
 
 doBlueprint :: Blueprint -> Int -> Int
 doBlueprint bp maxT =
@@ -77,20 +79,24 @@ doBlueprint bp maxT =
         -- traceM $ show (bpNum bp) ++ " " ++ show time ++ " " ++ show npot ++ " " ++ show robos ++ " " ++ show rocks
         if time == maxT
             then pure (geod rocks)
-            else do
-                let noop = (robos, zipWithT (+) rocks robos)
-                let actions = flip mapMaybe [ore, clay, obsid, geod] $ \rocktype ->
-                        do
-                            guard $ andT $ zipWithT (<=) (rocktype rules) rocks
-                            let one = rocktype oneRule
-                            let robos' = zipWithT (+) robos one
-                            let rocks' = zipWithT (-) (zipWithT (+) robos rocks) (rocktype rules)
-                            pure (robos', rocks')
-                let hpadd hp (robos', rocks') =
-                        let pot = maxGeods (maxT - time - 1) robos' rocks' rules
-                         in if pot > 0 then PQ.insert (-pot, time + 1, robos', rocks') hp else hp
-                let heap'' = foldl' hpadd heap' (noop : actions)
-                work heap''
+            else
+                if allT ((ore robos >) . ore) rules
+                    then -- Too many ore robots. Might as well sit doing nothing, so try another thing from the heap
+                        work heap'
+                    else do
+                        let noop = (robos, zipWithT (+) rocks robos)
+                        let actions = flip mapMaybe [ore, clay, obsid, geod] $ \rocktype ->
+                                do
+                                    guard $ andT $ zipWithT (<=) (rocktype rules) rocks
+                                    let one = rocktype oneRule
+                                    let robos' = zipWithT (+) robos one
+                                    let rocks' = zipWithT (-) (zipWithT (+) robos rocks) (rocktype rules)
+                                    pure (robos', rocks')
+                        let hpadd hp (robos', rocks') =
+                                let pot = maxGeods (maxT - time - 1) robos' rocks' rules
+                                 in if pot > 0 then PQ.insert (-pot, time + 1, robos', rocks') hp else hp
+                        let heap'' = foldl' hpadd heap' (noop : actions)
+                        work heap''
 
 main :: IO ()
 main = do
