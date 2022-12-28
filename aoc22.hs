@@ -15,19 +15,23 @@ import System.Environment (getArgs)
 type C3 a = (a, a, a)
 
 class VecOps x where
+    -- | Vector addition
     ($+$) :: x -> x -> x
+
+    -- | Scalar multiplication
     iMul :: Int -> x -> x
 
 instance (Num a, Num b, Num c) => VecOps (a, b, c) where
     (a, b, c) $+$ (a', b', c') = (a + a', b + b', c + c')
     iMul x (a, b, c) = (fromIntegral x * a, fromIntegral x * b, fromIntegral x * c)
 
-instance (Num a) => VecOps (a, a) where
+instance (Num a, Num b) => VecOps (a, b) where
     (a, b) $+$ (a', b') = (a + a', b + b')
     iMul x (a, b) = (fromIntegral x * a, fromIntegral x * b)
 
 infixl 6 $+$
 
+-- | Vector cross product
 ($*$) :: Num a => C3 a -> C3 a -> C3 a
 (a, b, c) $*$ (a', b', c') = (b * c' - c * b', c * a' - a * c', a * b' - b * a')
 
@@ -36,6 +40,7 @@ infixl 7 $*$
 flatland :: C3 a -> (a, a)
 flatland (a, b, _) = (a, b)
 
+-- | Parses into (Left False) for "L", (Left True) for "R", or (Right dist) for "walk dist"
 parseLine :: String -> [Either Bool Int]
 parseLine ('L' : s) = Left False : parseLine s
 parseLine ('R' : s) = Left True : parseLine s
@@ -60,7 +65,7 @@ part1 grid directions =
      in (row + 1, col + 1, fdir)
   where
     go (Left True) (spot, dir) = (spot, dir $*$ (0, 0, 1))
-    go (Left False) (spot, dir) = (spot, (0,0,1) $*$ dir)
+    go (Left False) (spot, dir) = (spot, (0, 0, 1) $*$ dir)
     go (Right dist) (spot, dir) = go' dist spot dir
     go' 0 spot dir = (spot, dir)
     go' dist spot dir =
@@ -86,20 +91,21 @@ data Face = Face
     deriving (Show, Eq)
 
 part2 :: M.Map (Int, Int) Char -> [Either Bool Int] -> (Int, Int, Int)
-part2 grid directions = let
-    ((finalLZ, finalspot), finaldir) = foldl' (flip go) (((0,0,1),(0,0,0)), (0,1,0)) directions
-    (row, col, face) = fst $ spaceMap M.! (finalLZ, finalspot)
-    fdir
-      | finaldir == localY face = 0
-      | finaldir == localX face = 1
-      | finaldir == (-1) `iMul` localY face = 2
-      | finaldir == (-1) `iMul` localX face = 3
-      | otherwise = error ("Bad final dir: " ++ show finaldir ++ " on " ++ show face)
-    in (row + 1, col + 1, fdir)
+part2 grid directions =
+    let ((finalLZ, finalspot), finaldir) = foldl' (flip go) (((0, 0, 1), (0, 0, 0)), (0, 1, 0)) directions
+        (row, col, face) = fst $ spaceMap M.! (finalLZ, finalspot)
+        fdir
+            | finaldir == localY face = 0
+            | finaldir == localX face = 1
+            | finaldir == (-1) `iMul` localY face = 2
+            | finaldir == (-1) `iMul` localX face = 3
+            | otherwise = error ("Bad final dir: " ++ show finaldir ++ " on " ++ show face)
+     in (row + 1, col + 1, fdir)
   where
     gridsize = floor (sqrt (fromIntegral $ M.size grid `div` 6) :: Double)
     gridstarts = sort $ filter (isJust . (`M.lookup` grid)) [(row * gridsize, col * gridsize) | row <- [0 .. 10], col <- [0 .. 10]]
     startFace = Face (1, 0, 0) (0, 1, 0) (0, 0, 1) (0, 0, 0) (minimum gridstarts) :: Face
+    getFaces :: [Face] -> [Face]
     getFaces sofar =
         let sofarStarts = sort $ gridStart <$> sofar
             remaining = filter (`notElem` sofarStarts) gridstarts
@@ -107,7 +113,7 @@ part2 grid directions = let
             candidateDn = ((1, 0),) <$> filter ((`elem` sofarStarts) . ($+$ (gridsize, 0))) remaining
             candidateLt = ((0, -1),) <$> filter ((`elem` sofarStarts) . ($+$ (0, -gridsize))) remaining
             candidateRt = ((0, 1),) <$> filter ((`elem` sofarStarts) . ($+$ (0, gridsize))) remaining
-            candidate = head $ candidateUp ++ candidateDn ++ candidateLt ++ candidateRt
+            candidates = candidateUp ++ candidateDn ++ candidateLt ++ candidateRt
             neighborFace ((a, b), gstart) = head $ filter ((== (gstart $+$ (a * gridsize, b * gridsize))) . gridStart) sofar
             computeAxes (a, b) srcFace = case (a, b) of
                 (0, _) ->
@@ -127,7 +133,7 @@ part2 grid directions = let
                  in Face newLX newLY newLZ newspacestart gstart
          in if sofarStarts == gridstarts
                 then sofar
-                else getFaces (makeFace candidate : sofar)
+                else getFaces (map makeFace candidates ++ sofar)
     faces = getFaces [startFace]
     spaceMap :: M.Map (C3 Int, C3 Int) ((Int, Int, Face), Char)
     spaceMap = M.fromList $ flip concatMap faces $ \face ->
@@ -141,8 +147,9 @@ part2 grid directions = let
     nxtSpotDir :: (C3 Int, C3 Int) -> C3 Int -> ((C3 Int, C3 Int), C3 Int)
     nxtSpotDir (myLZ, spot) dir =
         let naive = spot $+$ dir
-        in if isJust (M.lookup (myLZ, naive) spaceMap) then ((myLZ, naive), dir)
-           else ((dir, spot), (-1) `iMul` myLZ)
+         in if isJust (M.lookup (myLZ, naive) spaceMap)
+                then ((myLZ, naive), dir)
+                else ((dir, spot), (-1) `iMul` myLZ)
     go (Left True) ((myLZ, spot), dir) = ((myLZ, spot), dir $*$ myLZ)
     go (Left False) ((myLZ, spot), dir) = ((myLZ, spot), myLZ $*$ dir)
     go (Right dist) (spot, dir) = go' dist spot dir
@@ -153,8 +160,6 @@ part2 grid directions = let
                 Just (_, '#') -> ((myLZ, spot), dir)
                 Just (_, '.') -> go' (dist - 1) (nLZ, nspot) ndir
                 sth -> error $ "Bad lookup: " ++ show sth ++ " for " ++ show (nLZ, nspot) ++ " from " ++ show ((myLZ, spot), dir)
-
-
 
 main :: IO ()
 main = do
