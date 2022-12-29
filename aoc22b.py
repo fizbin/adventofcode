@@ -43,11 +43,11 @@ def part1(grid, moves):
     if mydir == 1j:
         fdir = 0
     elif mydir == -1.0:
-        fdir = 1
+        fdir = 3
     elif mydir == -1j:
         fdir = 2
     elif mydir == 1.0:
-        fdir = 3
+        fdir = 1
     # print(frow, fcol, fdir)
     print(1000 * frow + 4 * fcol + fdir)
 
