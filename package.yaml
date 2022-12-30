@@ -8,6 +8,7 @@ dependencies:
   - split
   - text
   - bytestring
+  - array
 ghc-options: "-O2"
 executables:
   aoc1:
