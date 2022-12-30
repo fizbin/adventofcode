@@ -103,38 +103,40 @@ part2 grid directions =
      in (row + 1, col + 1, fdir)
   where
     gridsize = floor (sqrt (fromIntegral $ M.size grid `div` 6) :: Double)
-    gridstarts = sort $ filter (isJust . (`M.lookup` grid)) [(row * gridsize, col * gridsize) | row <- [0 .. 10], col <- [0 .. 10]]
+    -- the top-left corners of each face when folded flat
+    gridstarts = sort $ filter (\(a, b) -> a `mod` gridsize == 0 && b `mod` gridsize == 0) $ M.keys grid
     startFace = Face (1, 0, 0) (0, 1, 0) (0, 0, 1) (0, 0, 0) (minimum gridstarts) :: Face
     getFaces :: [Face] -> [Face]
     getFaces sofar =
         let sofarStarts = sort $ gridStart <$> sofar
             remaining = filter (`notElem` sofarStarts) gridstarts
-            candidateUp = ((-1, 0),) <$> filter ((`elem` sofarStarts) . ($+$ (-gridsize, 0))) remaining
-            candidateDn = ((1, 0),) <$> filter ((`elem` sofarStarts) . ($+$ (gridsize, 0))) remaining
-            candidateLt = ((0, -1),) <$> filter ((`elem` sofarStarts) . ($+$ (0, -gridsize))) remaining
-            candidateRt = ((0, 1),) <$> filter ((`elem` sofarStarts) . ($+$ (0, gridsize))) remaining
+            candidateUp = ((-1, 0),) <$> filter ((`elem` remaining) . ($+$ (-gridsize, 0)) . gridStart) sofar
+            candidateDn = ((1, 0),) <$> filter ((`elem` remaining) . ($+$ (gridsize, 0)) . gridStart) sofar
+            candidateLt = ((0, -1),) <$> filter ((`elem` remaining) . ($+$ (0, -gridsize)) . gridStart) sofar
+            candidateRt = ((0, 1),) <$> filter ((`elem` remaining) . ($+$ (0, gridsize)) . gridStart) sofar
             candidates = candidateUp ++ candidateDn ++ candidateLt ++ candidateRt
-            neighborFace ((a, b), gstart) = head $ filter ((== (gstart $+$ (a * gridsize, b * gridsize))) . gridStart) sofar
-            computeAxes (a, b) srcFace = case (a, b) of
-                (0, _) ->
-                    let nx = localX srcFace; nz = (-b) `iMul` localY srcFace
-                     in (nx, nz $*$ nx, nz)
-                (_, 0) ->
-                    let ny = localY srcFace; nz = (-a) `iMul` localX srcFace
-                     in (ny $*$ nz, ny, nz)
-                _ -> error $ "Internal error; computeAxes for " ++ show (a, b)
-            makeFace ((a, b), gstart) =
-                let srcFace = neighborFace ((a, b), gstart)
-                    (newLX, newLY, newLZ) = computeAxes (a, b) srcFace
-                    newspacestart =
-                        if a + b < 0
-                            then spaceStart srcFace $+$ (gridsize - 1) `iMul` newLZ
-                            else spaceStart srcFace $+$ (-gridsize + 1) `iMul` localZ srcFace
-                 in Face newLX newLY newLZ newspacestart gstart
-         in if sofarStarts == gridstarts
-                then sofar
-                else getFaces (map makeFace candidates ++ sofar)
+            newFace ((xdir, ydir), face) =
+                -- we leave face going (xdir, ydir); what face do we end up on?
+                let (newLX, newLY, newLZ) = case (xdir, ydir) of
+                        (0, _) ->
+                            let nx = localX face
+                                nz = ydir `iMul` localY face
+                             in (nx, nz $*$ nx, nz)
+                        (_, 0) ->
+                            let ny = localY face
+                                nz = xdir `iMul` localX face
+                             in (ny $*$ nz, ny, nz)
+                        _ -> error "Internal error"
+                    newSpaceStart =
+                        if xdir + ydir > 0
+                            then spaceStart face $+$ (gridsize - 1) `iMul` newLZ
+                            else spaceStart face $+$ (-(gridsize - 1)) `iMul` localZ face
+                 in Face newLX newLY newLZ newSpaceStart (gridStart face $+$ (gridsize * xdir, gridsize * ydir))
+         in case candidates of
+                [] -> sofar
+                _ -> getFaces $ nub (map newFace candidates ++ sofar)
     faces = getFaces [startFace]
+    -- maps (local Z axis, spot-in-space) to (spot-on-grid, face, char)
     spaceMap :: M.Map (C3 Int, C3 Int) ((Int, Int, Face), Char)
     spaceMap = M.fromList $ flip concatMap faces $ \face ->
         [ ( (localZ face, spaceStart face $+$ r `iMul` localX face $+$ c `iMul` localY face)
@@ -144,6 +146,7 @@ part2 grid directions =
         , c <- [0 .. gridsize - 1]
         , let (r', c') = (r, c) $+$ gridStart face
         ]
+    -- (local Z axis, spot-i-space) -> space dir -> ((new local Z axis, new spot-in-space), new space dir)
     nxtSpotDir :: (C3 Int, C3 Int) -> C3 Int -> ((C3 Int, C3 Int), C3 Int)
     nxtSpotDir (myLZ, spot) dir =
         let naive = spot $+$ dir

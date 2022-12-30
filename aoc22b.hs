@@ -10,7 +10,7 @@ import qualified Data.Map as M
 import Data.Maybe (isJust)
 import System.Environment (getArgs)
 
-import Debug.Trace (trace)
+-- import Debug.Trace (trace)
 
 class VecOps x where
     -- | Vector addition
@@ -123,7 +123,7 @@ part2NextSpot grid = nextSpotDir
     joinAll [] = []
     joinAll boundary = case break (== Left False) boundary of
         ([], Left False : _) -> error "We don't join to leave a 'Left False' at the front of boundary"
-        (before, Left False : after) -> let (a, b) = joiner (reverse before) after in trace ("remaining = " ++ show b) $ a ++ joinAll b
+        (before, Left False : after) -> let (a, b) = joiner (reverse before) after in a ++ joinAll b
         _ -> error ("Somehow we aren't done, but have no corners to join from: " ++ show boundary)
 
     -- The meat of how edges are joined into a cube. "joiner" is called from "joinAll" with the two sides of "boundary"
