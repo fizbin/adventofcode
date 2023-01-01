@@ -1,3 +1,7 @@
+name: aoc2022
+version: 0.0.1
+synopsis: Advent of Code 2022 by Daniel Martin
+
 dependencies:
   - base >= 4.7 && < 5
   - containers
@@ -9,11 +13,21 @@ dependencies:
   - text
   - bytestring
   - array
-ghc-options: "-O2"
+when:
+  - condition: os(windows)
+    then:
+      ghc-options:
+        [
+          "-O2",
+          "+RTS",
+          "--io-manager=native",
+          "-RTS",
+          "-with-rtsopts=--io-manager=native",
+        ]
+    else:
+      ghc-options: ["-O2"]
 executables:
-  aoc1:
-    main: aoc1.hs
-    source-dirs: .
+  aoc1: { "main": "aoc1.hs", "source-dirs": "." }
   aoc10: { "main": "aoc10.hs", "source-dirs": "." }
   aoc11: { "main": "aoc11.hs", "source-dirs": "." }
   aoc11b: { "main": "aoc11b.hs", "source-dirs": "." }
@@ -49,5 +63,3 @@ executables:
   aoc8: { "main": "aoc8.hs", "source-dirs": "." }
   aoc8b: { "main": "aoc8b.hs", "source-dirs": "." }
   aoc9: { "main": "aoc9.hs", "source-dirs": "." }
-
-name: aoc2022

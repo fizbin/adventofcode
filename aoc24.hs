@@ -2,32 +2,65 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wall #-}
 
-import Control.Monad
+import Data.Array (Array)
 import qualified Data.Array.IArray as IA
 import Data.Array.Unboxed (UArray)
-import Dijkstra (aStar')
+import qualified Data.Set as S
 import System.Environment (getArgs)
 
 -- import Debug.Trace (trace)
 
-neigh :: IA.IArray a Char => Int -> Int -> a (Int, Int) Char -> ((Int, Int), Int) -> [((Int, Int), Int)]
-neigh pitchHeight pitchWidth grid (sp@(row, col), t) = do
-    (row', col') <- [(row + r, col + c) | (r, c) <- [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)]]
-    let (low, high) = IA.bounds grid
-    -- traceM $ show (low, high)
-    guard $ sp >= low
-    guard $ sp <= high
-    -- let tracedBang arr ind = let (l, h) = IA.bounds arr in if (l <= ind) && (ind <= h) then Right (arr IA.! ind) else Left (show ind ++ " not in " ++ show (l, h))
-    guard $ '#' /= grid IA.! sp
-    when ((1 <= row) && (row <= pitchHeight)) $ do
-        guard $ '<' /= grid IA.! (row', 1 + ((col' + t) `mod` pitchWidth))
-        guard $ '>' /= grid IA.! (row', 1 + ((col' - t - 2) `mod` pitchWidth))
-        guard $ '^' /= grid IA.! (1 + ((row' + t) `mod` pitchHeight), col')
-        guard $ 'v' /= grid IA.! (1 + ((row' - t - 2) `mod` pitchHeight), col')
-    pure ((row', col'), t + 1)
+getHorizOkays :: (IA.IArray a Char, IA.IArray b (S.Set (Int, Int))) => a (Int, Int) Char -> b Int (S.Set (Int, Int))
+getHorizOkays grid =
+    let (boundx, boundy) = snd $ IA.bounds grid
+        pitchWidth = boundy - 1
+        tophole = head $ filter ((== '.') . (grid IA.!)) $ (0,) <$> [0 .. boundy]
+        bothole = head $ filter ((== '.') . (grid IA.!)) $ (boundx,) <$> [0 .. boundy]
+     in IA.listArray (0, pitchWidth - 1) $
+            map
+                ( \t ->
+                    S.fromList $
+                        [tophole, bothole]
+                            ++ [ (row, col)
+                               | row <- [1 .. boundx - 1]
+                               , col <- [1 .. boundy - 1]
+                               , '<' /= grid IA.! (row, 1 + ((col + t) `mod` pitchWidth))
+                               , '>' /= grid IA.! (row, 1 + ((col - t - 2) `mod` pitchWidth))
+                               ]
+                )
+                [0 .. pitchWidth - 1]
 
-estimate :: (Int, Int) -> ((Int, Int), a) -> Int
-estimate goal ((row, col), _) = abs (fst goal - row) + abs (snd goal - col)
+getVertOkays :: (IA.IArray a Char, IA.IArray b (S.Set (Int, Int))) => a (Int, Int) Char -> b Int (S.Set (Int, Int))
+getVertOkays grid =
+    let (boundx, boundy) = snd $ IA.bounds grid
+        pitchHeight = boundx - 1
+        tophole = head $ filter ((== '.') . (grid IA.!)) $ (0,) <$> [0 .. boundy]
+        bothole = head $ filter ((== '.') . (grid IA.!)) $ (boundx,) <$> [0 .. boundy]
+     in IA.listArray (0, pitchHeight - 1) $
+            map
+                ( \t ->
+                    S.fromList $
+                        [tophole, bothole]
+                            ++ [ (row, col)
+                               | row <- [1 .. boundx - 1]
+                               , col <- [1 .. boundy - 1]
+                               , '^' /= grid IA.! (1 + ((row + t) `mod` pitchHeight), col)
+                               , 'v' /= grid IA.! (1 + ((row - t - 2) `mod` pitchHeight), col)
+                               ]
+                )
+                [0 .. pitchHeight - 1]
+
+step :: (IA.IArray b (S.Set (Int, Int))) => b Int (S.Set (Int, Int)) -> b Int (S.Set (Int, Int)) -> Int -> S.Set (Int, Int) -> S.Set (Int, Int)
+step horizOkays vertOkays t src =
+    let pitchWidth = 1 + snd (IA.bounds horizOkays)
+        pitchHeight = 1 + snd (IA.bounds vertOkays)
+        horizOk = horizOkays IA.! (t `mod` pitchWidth)
+        vertOk = vertOkays IA.! (t `mod` pitchHeight)
+        srcUp = S.mapMonotonic (\(r, c) -> (r - 1, c)) src
+        srcDn = S.mapMonotonic (\(r, c) -> (r + 1, c)) src
+        srcLt = S.mapMonotonic (\(r, c) -> (r, c - 1)) src
+        srcRt = S.mapMonotonic (\(r, c) -> (r, c + 1)) src
+     in horizOk `S.intersection` vertOk `S.intersection` S.unions [src, srcUp, srcDn, srcLt, srcRt]
 
 main :: IO ()
 main = do
@@ -40,19 +73,16 @@ main = do
     let pitchWidth = length (head s) - 2
     let pitchHeight = length s - 2
     let asrc = [((row, col), ch) | (row, line) <- zip [0 ..] s, (col, ch) <- zip [0 ..] line]
-    -- traceM $ show asrc
-    -- traceM $ show ((0, 0), (pitchHeight + 1, pitchWidth + 1))
     let grid :: UArray (Int, Int) Char
         grid = IA.array ((0, 0), (pitchHeight + 1, pitchWidth + 1)) asrc
-    -- print $ grid IA.! (0, 0)
-    -- traceM "Got array"
-    let start = head $ map ((0,) . fst) $ filter (\(_, ch) -> ch == '.') $ zip [0 ..] (head s)
-    let goal = head $ map ((length s - 1,) . fst) $ filter (\(_, ch) -> ch == '.') $ zip [0 ..] (last s)
-    -- print goal
-    -- print $ dijkstra (map (,1::Int) . neigh pitchHeight pitchWidth grid) (start, 0) ((== goal) . fst)
-    let Just part1 = aStar' (map (,1) . neigh pitchHeight pitchWidth grid) (start, 0) (estimate goal) ((== goal) . fst)
-    print (snd $ fst part1)
+        tophole = head $ filter ((== '.') . (grid IA.!)) $ (0,) <$> [0 .. pitchWidth + 1]
+        bothole = head $ filter ((== '.') . (grid IA.!)) $ (pitchHeight + 1,) <$> [0 .. pitchWidth + 1]
+        horizOkays = getHorizOkays grid :: Array Int (S.Set (Int, Int))
+        vertOkays = getVertOkays grid
+        getTime t startSet goal = if goal `S.member` startSet then t else getTime (t + 1) (step horizOkays vertOkays t startSet) goal
 
-    let Just part2a = aStar' (map (,1) . neigh pitchHeight pitchWidth grid) (fst part1) (estimate start) ((== start) . fst)
-    let Just part2b = aStar' (map (,1) . neigh pitchHeight pitchWidth grid) (fst part2a) (estimate goal) ((== goal) . fst)
-    print (snd $ fst part2b)
+    let part1 = getTime 0 (S.singleton tophole) bothole
+    print part1
+    let part2a = getTime part1 (S.singleton bothole) tophole
+    let part2b = getTime part2a (S.singleton tophole) bothole
+    print part2b
