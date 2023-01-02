@@ -29,7 +29,7 @@ northNbs = map rotRight westNbs
 eastNbs = map rotRight northNbs
 
 allNeighbors :: (Int, Int) -> [(Int, Int)]
-allNeighbors (a, b) = [(a + i, b + j) | i <- [-1, 0, 1], j <- [-1, 0, 1], (i /= 0) || (j /= 0)]
+allNeighbors (a, b) = [(a + i, b + j) | (i, j) <- [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]]
 
 doStep :: Int -> S.Set (Int, Int) -> Maybe (S.Set (Int, Int))
 doStep tick elves =
