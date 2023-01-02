@@ -60,7 +60,7 @@ step horizOkays vertOkays t src =
         srcDn = S.mapMonotonic (\(r, c) -> (r + 1, c)) src
         srcLt = S.mapMonotonic (\(r, c) -> (r, c - 1)) src
         srcRt = S.mapMonotonic (\(r, c) -> (r, c + 1)) src
-     in horizOk `S.intersection` vertOk `S.intersection` S.unions [src, srcUp, srcDn, srcLt, srcRt]
+     in horizOk `S.intersection` (vertOk `S.intersection` S.unions [src, srcUp, srcDn, srcLt, srcRt])
 
 main :: IO ()
 main = do
