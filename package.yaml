@@ -54,6 +54,7 @@ executables:
   aoc24c: { "main": "aoc24c.hs", "source-dirs": "." }
   aoc24d: { "main": "aoc24d.hs", "source-dirs": "." }
   aoc24e: { "main": "aoc24e.hs", "source-dirs": "." }
+  aoc24f: { "main": "aoc24f.hs", "source-dirs": "." }
   aoc25: { "main": "aoc25.hs", "source-dirs": "." }
   aoc3: { "main": "aoc3.hs", "source-dirs": "." }
   aoc4: { "main": "aoc4.hs", "source-dirs": "." }
