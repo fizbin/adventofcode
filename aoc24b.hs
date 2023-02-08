@@ -47,21 +47,15 @@ finish Fail = Nothing
 
 type State = ((Int, Int), Int)
 
-data WorkTree a = Leaf a | Branch [WorkTree a]
-
-toWorky :: WorkTree a -> Worky a
-toWorky (Leaf x) = Done x
-toWorky (Branch br) = Worky $ foldMap toWorky br
-
-workGoal :: (State -> [State]) -> (State -> Int) -> (State -> Bool) -> State -> WorkTree State
+workGoal :: (State -> [State]) -> (State -> Int) -> (State -> Bool) -> State -> Worky State
 workGoal nbF estF goalF = go
  where
   go iState =
     if goalF iState
-      then Leaf iState
+      then Done iState
       else
         let nbs = sortBy (\a b -> compare (estF a) (estF b) <> compare a b) (nbF iState)
-         in Branch $ map go nbs
+         in Worky $ foldMap go nbs
 
 main :: IO ()
 main = do
@@ -77,10 +71,10 @@ main = do
   let pitchWidth = length (head s) - 2
   let pitchHeight = length s - 2
 
-  let Just part1 = finish . toWorky $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) (start, 0)
+  let Just part1 = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) (start, 0)
   print $ snd part1
 
 
-  let Just part2a = finish . toWorky $ workGoal (neigh pitchHeight pitchWidth grid) (estimate start) ((== start) . fst) part1
-  let Just part2b = finish . toWorky $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) part2a
+  let Just part2a = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate start) ((== start) . fst) part1
+  let Just part2b = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) part2a
   print $ snd part2b

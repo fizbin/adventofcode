@@ -1,12 +1,10 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wall #-}
 
-{- This will work on the full problem input, but will take three to four times as -}
-{- long as aoc24d.hs, which is based on an A* search. -}
-
 import Control.Monad ( guard, when )
 import Data.List (sortBy)
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import System.Environment (getArgs)
 
 -- import Debug.Trace (trace)
@@ -48,22 +46,15 @@ finish Fail = Nothing
 type State = ((Int, Int), Int)
 
 workGoal :: (State -> [State]) -> (State -> Int) -> (State -> Bool) -> State -> Worky State
-workGoal nbF estF goalF = go'
+workGoal nbF estF goalF = go . S.singleton
  where
-  cafmain = mkcaf 0
-  mkcaf t = mkcafRow t 0 : mkcaf (t+1)
-  mkcafRow t r = mkcafCell t r 0 : mkcafRow t (r+1)
-  mkcafCell t r c = go' ((r, c), t) : mkcafCell t r (c+1)
-  findin _ ((r, c), t) | (r < 0) || (c < 0) || (t < 0) = Fail
-  findin tlcaf ((r, c), t) = ((tlcaf !! t) !! r) !! c
-  go' = go (findin cafmain)
-  go :: (State -> Worky State) -> State -> Worky State
-  go gorec iState =
-    if goalF iState
-      then Done iState
-      else
-        let nbs = sortBy (\a b -> compare (estF a) (estF b) <> compare a b) (nbF iState)
-         in Worky $ foldMap gorec nbs
+  go :: S.Set State -> Worky State
+  go iStates =
+   let dones = S.toList $ S.filter goalF iStates
+   in
+      case dones of
+        (x:_) -> Done x
+        _ -> Worky $ go $ S.fromList $ concatMap nbF $ S.toList iStates 
 
 main :: IO ()
 main = do
@@ -79,8 +70,9 @@ main = do
   let pitchWidth = length (head s) - 2
   let pitchHeight = length s - 2
 
-  let Just part1 = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) (start, 0)
+  let Just part1 = finish  $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) (start, 0)
   print $ snd part1
-  let Just part2a = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate start) ((== start) . fst) part1
-  let Just part2b = finish $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) part2a
+
+  let Just part2a = finish  $ workGoal (neigh pitchHeight pitchWidth grid) (estimate start) ((== start) . fst) part1
+  let Just part2b = finish  $ workGoal (neigh pitchHeight pitchWidth grid) (estimate goal) ((== goal) . fst) part2a
   print $ snd part2b
