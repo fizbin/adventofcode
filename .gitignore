@@ -1,0 +1,10 @@
+__pycache__
+*.in
+*~
+*.o
+*.hi
+*.yaml.lock
+*.exe
+.stack-work
+.DS_Store
+.vscode
