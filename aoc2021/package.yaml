@@ -1,0 +1,11 @@
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- multiset
+- data-default-class
+- deepseq
+- mtl
+- pqueue
+executable:
+  main: aoc5.hs
+  source-dirs: .
