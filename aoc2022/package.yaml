@@ -1,0 +1,67 @@
+name: aoc2022
+version: 0.0.1
+synopsis: Advent of Code 2022 by Daniel Martin
+
+dependencies:
+  - base >= 4.7 && < 5
+  - containers
+  - multiset
+  - mtl
+  - pqueue
+  - vector
+  - split
+  - text
+  - bytestring
+  - array
+when:
+  - condition: os(windows)
+    then:
+      ghc-options:
+        [
+          "-O2",
+          "+RTS",
+          "--io-manager=native",
+          "-RTS",
+          "-with-rtsopts=--io-manager=native",
+        ]
+    else:
+      ghc-options: ["-O2"]
+executables:
+  aoc1: { "main": "aoc1.hs", "source-dirs": "." }
+  aoc10: { "main": "aoc10.hs", "source-dirs": "." }
+  aoc11: { "main": "aoc11.hs", "source-dirs": "." }
+  aoc11b: { "main": "aoc11b.hs", "source-dirs": "." }
+  aoc12: { "main": "aoc12.hs", "source-dirs": "." }
+  aoc13: { "main": "aoc13.hs", "source-dirs": "." }
+  aoc14: { "main": "aoc14.hs", "source-dirs": "." }
+  aoc15: { "main": "aoc15.hs", "source-dirs": "." }
+  aoc15b: { "main": "aoc15b.hs", "source-dirs": "." }
+  aoc16: { "main": "aoc16.hs", "source-dirs": "." }
+  aoc16b: { "main": "aoc16b.hs", "source-dirs": "." }
+  aoc17: { "main": "aoc17.hs", "source-dirs": "." }
+  aoc18: { "main": "aoc18.hs", "source-dirs": "." }
+  aoc19: { "main": "aoc19.hs", "source-dirs": "." }
+  aoc19b: { "main": "aoc19b.hs", "source-dirs": "." }
+  aoc2: { "main": "aoc2.hs", "source-dirs": "." }
+  aoc20: { "main": "aoc20.hs", "source-dirs": "." }
+  aoc20b: { "main": "aoc20b.hs", "source-dirs": "." }
+  aoc21: { "main": "aoc21.hs", "source-dirs": "." }
+  aoc22: { "main": "aoc22.hs", "source-dirs": "." }
+  aoc22b: { "main": "aoc22b.hs", "source-dirs": "." }
+  aoc23: { "main": "aoc23.hs", "source-dirs": "." }
+  aoc24: { "main": "aoc24.hs", "source-dirs": "." }
+  aoc24b: { "main": "aoc24b.hs", "source-dirs": "." }
+  aoc24c: { "main": "aoc24c.hs", "source-dirs": "." }
+  aoc24d: { "main": "aoc24d.hs", "source-dirs": "." }
+  aoc24e: { "main": "aoc24e.hs", "source-dirs": "." }
+  aoc24f: { "main": "aoc24f.hs", "source-dirs": "." }
+  aoc25: { "main": "aoc25.hs", "source-dirs": "." }
+  aoc3: { "main": "aoc3.hs", "source-dirs": "." }
+  aoc4: { "main": "aoc4.hs", "source-dirs": "." }
+  aoc5: { "main": "aoc5.hs", "source-dirs": "." }
+  aoc6: { "main": "aoc6.hs", "source-dirs": "." }
+  aoc6b: { "main": "aoc6b.hs", "source-dirs": "." }
+  aoc7: { "main": "aoc7.hs", "source-dirs": "." }
+  aoc8: { "main": "aoc8.hs", "source-dirs": "." }
+  aoc8b: { "main": "aoc8b.hs", "source-dirs": "." }
+  aoc9: { "main": "aoc9.hs", "source-dirs": "." }
