@@ -1,0 +1,27 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           aoc2015
+version:        0.0.0
+build-type:     Simple
+
+executable aoc2015
+  main-is: aoc11.hs
+  other-modules:
+      Paths_aoc2015
+  hs-source-dirs:
+      ./
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , data-default-class
+    , deepseq
+    , hashable
+    , mtl
+    , multiset
+    , pqueue
+    , vector
+  default-language: Haskell2010

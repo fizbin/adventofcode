@@ -1,0 +1,13 @@
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- multiset
+- data-default-class
+- deepseq
+- mtl
+- pqueue
+- hashable
+- vector
+executable:
+  main: aoc11.hs
+  source-dirs: .
