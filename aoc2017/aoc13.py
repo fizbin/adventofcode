@@ -1,6 +1,5 @@
 import sys
 import re
-import collections
 
 infile = "aoc13.in"
 if len(sys.argv) > 1:
