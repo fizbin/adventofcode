@@ -8,7 +8,7 @@ with open(infile, "r", encoding="utf-8") as infilep:
     data = infilep.read()
 
 data = data.strip(" \r\n\t")
-#print(repr(data))
+# print(repr(data))
 
 # part 1
 mysum = 0
