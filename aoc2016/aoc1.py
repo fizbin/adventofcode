@@ -8,9 +8,9 @@ if len(sys.argv) > 1:
 with open(infile, "r", encoding="utf-8") as infilep:
     data = infilep.read().strip()
 
-pos = 0+0j
+pos = 0 + 0j
 pos2 = None
-dir = 1+0j
+dir = 1 + 0j
 been_there = set()
 for m in re.finditer(r"([LR])(\d+)", data):
     if m.group(1) == "L":
