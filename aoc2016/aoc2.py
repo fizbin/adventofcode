@@ -1,5 +1,4 @@
 import sys
-import re
 
 infile = "aoc2.in"
 if len(sys.argv) > 1:
