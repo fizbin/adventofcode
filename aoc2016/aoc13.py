@@ -1,5 +1,4 @@
 import sys
-import numpy as np
 
 input = 1364
 if len(sys.argv) > 2:
