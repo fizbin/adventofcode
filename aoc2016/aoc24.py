@@ -19,63 +19,35 @@ for ridx, line in enumerate(data):
             alldigits_builder.add(char)
 
 alldigits = frozenset(alldigits_builder)
-been_there = set()
-boundary = [(startspot, frozenset(["0"]))]
-nsteps = 0
-while True:
-    oboundary = boundary
-    boundary = []
-    for (r, c), has in oboundary:
-        if data[r][c] == ".":
-            pass
-        elif data[r][c] == "#":
-            continue
+
+for is_part_2 in (False, True):
+    been_there = set()
+    boundary = [(startspot, frozenset(["0"]))]
+    nsteps = 0
+    while True:
+        oboundary = boundary
+        boundary = []
+        for (r, c), has in oboundary:
+            if data[r][c] == ".":
+                pass
+            elif data[r][c] == "#":
+                continue
+            else:
+                has = has | frozenset([data[r][c]])
+            if has == alldigits:
+                break
+            if is_part_2 and "0" in has:
+                has = has - frozenset("0")
+            if ((r, c), has) in been_there:
+                continue
+            been_there.add(((r, c), has))
+            boundary.append(((r + 1, c), has))
+            boundary.append(((r - 1, c), has))
+            boundary.append(((r, c + 1), has))
+            boundary.append(((r, c - 1), has))
         else:
-            has = has | frozenset([data[r][c]])
-        if has == alldigits:
-            break
-        if ((r, c), has) in been_there:
+            nsteps += 1
             continue
-        been_there.add(((r, c), has))
-        boundary.append(((r + 1, c), has))
-        boundary.append(((r - 1, c), has))
-        boundary.append(((r, c + 1), has))
-        boundary.append(((r, c - 1), has))
-    else:
-        nsteps += 1
-        continue
-    break
+        break
 
-print(nsteps)
-
-# part 2
-
-been_there = set()
-boundary = [(startspot, frozenset(["0"]))]
-nsteps = 0
-while True:
-    oboundary = boundary
-    boundary = []
-    for (r, c), has in oboundary:
-        if data[r][c] == ".":
-            pass
-        elif data[r][c] == "#":
-            continue
-        else:
-            has = has | frozenset([data[r][c]])
-        if has == alldigits:
-            break
-        has = has - frozenset("0")
-        if ((r, c), has) in been_there:
-            continue
-        been_there.add(((r, c), has))
-        boundary.append(((r + 1, c), has))
-        boundary.append(((r - 1, c), has))
-        boundary.append(((r, c + 1), has))
-        boundary.append(((r, c - 1), has))
-    else:
-        nsteps += 1
-        continue
-    break
-
-print(nsteps)
+    print(nsteps)
