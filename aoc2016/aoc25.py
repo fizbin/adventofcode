@@ -2,25 +2,14 @@ import sys
 import re
 import collections
 
-infile = "aoc23.in"
+infile = "aoc25.in"
 if len(sys.argv) > 1:
     infile = sys.argv[1]
 
 with open(infile, "r", encoding="utf-8") as infilep:
     data = list(infilep)
 
-og_data = list(data)
-
 dbg_ip = collections.Counter()
-
-# cpy b c
-# inc a
-# dec c
-# jnz c -2
-# dec d
-# jnz d -5
-
-# => a += b*d ; c = 0; d = 0
 
 mul_opt_re = re.compile(
     r"cpy (?P<b>\S+) (?P<c>.)\s+inc (?P<a>.)\s+dec (?P=c)\s+jnz (?P=c) -2\s+dec (?P<d>.)\s+jnz (?P=d) -5\s+"
@@ -36,9 +25,10 @@ def do_step(ip, reg):
     line = data[ip]
     line = re.sub(r"#.*", "", line)
     stuff = line.split()
+    out = None
     dbg_ip.update([ip])
     if dbg_ip.total() == 10000:
-        print("dbg_ip", dbg_ip.most_common())
+        # print("dbg_ip", dbg_ip.most_common())
         dbg_ip.clear()
     for _ in range(1):
         if line.strip():
@@ -111,33 +101,38 @@ def do_step(ip, reg):
                     oline = f"{'cpy' if 'jnz' == m.group(1) else 'jnz'} {m.group(2)}\n"
                 data[oip] = oline
                 # print(f"{oip} became {oline.strip()}")
+        elif instr == 'out':
+            out = reg_or_val(stuff[1])
         else:
             raise Exception(f"Unknown line at {ip}: {line}")
     ip += 1
-    return (ip, instr)
+    return (ip, out)
 
+starta = 0
+done = False
+while not done:
+    starta += 1
+    expected_out = 0
+    outn = 0
+    reg = {"a": starta, "b": 0, "c": 0, "d": 0}
+    ip = 0
+    been_there = set()
+    dbg_ip.clear()
+    print(f"Trying {starta}")
+    while 0 <= ip < len(data):
+        if (ip, tuple(reg.items())) in been_there:
+            if outn > 1:
+                done = True
+            break
+        been_there.add((ip, tuple(reg.items())))
+        (new_ip, out) = do_step(ip, reg)
+        if out is not None:
+            if out == expected_out:
+                expected_out = 1 - expected_out
+                outn += 1
+            else:
+                outn = 0
+                break
+        ip = new_ip
 
-reg = {"a": 7, "b": 0, "c": 0, "d": 0}
-ip = 0
-while 0 <= ip < len(data):
-    preg = dict(reg)
-    (new_ip, instr) = do_step(ip, reg)
-    # if instr == 'jnz':
-    #     print(ip, repr(preg), repr(data[ip]), new_ip, repr(reg))
-    ip = new_ip
-print(reg["a"])
-
-data = og_data
-reg = {"a": 12, "b": 0, "c": 0, "d": 0}
-ip = 0
-while 0 <= ip < len(data):
-    try:
-        while 0 <= ip < len(data):
-            preg = dict(reg)
-            (new_ip, instr) = do_step(ip, reg)
-            # if instr == 'jnz':
-            #     print(ip, repr(preg), repr(data[ip]), new_ip, repr(reg))
-            ip = new_ip
-    except KeyboardInterrupt:
-        breakpoint()
-print(reg["a"])
+print(starta)

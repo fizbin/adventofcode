@@ -17,8 +17,8 @@ almost certainly an accident.
 
 Some years may be incomplete, especially in earlier puzzles, because I
 didn't always keep the solution in a file if I could solve a puzzle
-with a `perl` or `sed` one-liner.
+with a `perl` or `sed` one-liner. Also, I appear to have lost some of
+the later solutions to 2015, and will need to redo those.
 
-Some years may be incomplete because I haven't gotten all the stars
-for that year yet; at the time of this writing, only 2015, 2018, 2019,
-2020, 2021 and 2022 are complete.
+At this time, I have completed all 400 stars in adventofcode, so
+motivation to fill out missing/lost code may not be there.
