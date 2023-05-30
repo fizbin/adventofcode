@@ -1,7 +1,7 @@
 import re
 import sys
 
-with open("aoc19.in.txt" if len(sys.argv) < 2 else sys.argv[1]) as f:
+with open("aoc19.in" if len(sys.argv) < 2 else sys.argv[1]) as f:
     data = f.read()
 
 (rules_src, start_molecule) = data.split('\n\n')
