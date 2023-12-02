@@ -24,9 +24,7 @@ def get_data_lines(problem_num: int) -> List[str]:
 
 
 def get_data_paras(problem_num: int) -> List[str]:
-    return [
-        x if x.endswith("\n") else f"{x}\n" for x in get_data(problem_num).split("\n\n")
-    ]
+    return [x if x.endswith("\n") else f"{x}\n" for x in get_data(problem_num).split("\n\n")]
 
 
 def numbers(in_string, is_hex=False) -> List[int]:
@@ -35,7 +33,7 @@ def numbers(in_string, is_hex=False) -> List[int]:
     if is_hex:
         regex = r"(?:(?<=\W)-)?\b(?:0x)?[0-9A-Fa-f]+"
         base = 16
-    return [int(x, base) for x in re.findall(regex, ' ' + in_string)]
+    return [int(x, base) for x in re.findall(regex, " " + in_string)]
 
 
 def chargrid(in_string: str) -> List[List[str]]:
@@ -45,7 +43,7 @@ def chargrid(in_string: str) -> List[List[str]]:
 def get_rotations(ndims, reflections=False, dtype=None):
     idmat = np.identity(ndims, dtype=dtype)
     retval = [idmat]
-    for (ax1, ax2) in itertools.combinations(range(ndims), 2):
+    for ax1, ax2 in itertools.combinations(range(ndims), 2):
         newval = np.copy(idmat)
         newval[ax1] = idmat[ax2]
         newval[ax2] = -idmat[ax1]
@@ -65,7 +63,7 @@ def get_rotations(ndims, reflections=False, dtype=None):
     working = []
     while len(working) < len(retval):
         working = list(retval)
-        for (mat1, mat2) in itertools.combinations_with_replacement(working, 2):
+        for mat1, mat2 in itertools.combinations_with_replacement(working, 2):
             prodmat = mat1 @ mat2
             if not any((z == prodmat).all() for z in retval):
                 retval.append(prodmat)
@@ -117,9 +115,7 @@ def astar(
         None if no path found; otherwise (total_distance, path_to_goal)
         path_to_goal[0] is the start that won; path_to_goal[-1] is the goal reached
     """
-    assert (start is None) != (
-        starts is None
-    ), "Exactly one of start, starts must be given"
+    assert (start is None) != (starts is None), "Exactly one of start, starts must be given"
     assert (neighborf is None) != (
         neighbor_distf is None
     ), "Exactly one of neighborf and neighbor_distf must be given"
@@ -147,7 +143,7 @@ def astar(
                 path_tup = cdr
             path.reverse()
             return (cost_so_far, path)
-        for (next_spot, dist) in neighbor_distf(pos):
+        for next_spot, dist in neighbor_distf(pos):
             if next_spot not in visited:
                 estimate = estimatef(next_spot)
                 heapq.heappush(

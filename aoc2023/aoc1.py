@@ -17,8 +17,6 @@ for d in range(10):
 
 firstnums = [re.findall(r"(" + dignamesre + "|[0-9])", x)[0] for x in data]
 lastnums = [re.findall(r".*(" + dignamesre + "|[0-9])", x)[0] for x in data]
-nums = [
-    int(str(digvalues[a]) + str(digvalues[b])) for (a, b) in zip(firstnums, lastnums)
-]
+nums = [int(str(digvalues[a]) + str(digvalues[b])) for (a, b) in zip(firstnums, lastnums)]
 
 print(sum(nums))
