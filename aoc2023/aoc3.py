@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from aoc_util import *
+from aoc_util import get_data_lines
 import re
 
 data = get_data_lines(3)
