@@ -13,6 +13,9 @@ dependencies:
   - text
   - bytestring
   - array
+default-extensions:
+- LambdaCase
+- ImportQualifiedPost
 when:
   - condition: os(windows)
     then:
