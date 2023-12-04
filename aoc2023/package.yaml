@@ -16,6 +16,7 @@ dependencies:
 default-extensions:
 - LambdaCase
 - ImportQualifiedPost
+- TupleSections
 when:
   - condition: os(windows)
     then:
@@ -34,7 +35,7 @@ executables:
   aoc1: { "main": "aoc1.hs", "source-dirs": "." }
   aoc2: { "main": "aoc2.hs", "source-dirs": "." }
   aoc3: { "main": "aoc3.hs", "source-dirs": "." }
-  # aoc4: { "main": "aoc4.hs", "source-dirs": "." }
+  aoc4: { "main": "aoc4.hs", "source-dirs": "." }
   # aoc5: { "main": "aoc5.hs", "source-dirs": "." }
   # aoc6: { "main": "aoc6.hs", "source-dirs": "." }
   # aoc6b: { "main": "aoc6b.hs", "source-dirs": "." }
