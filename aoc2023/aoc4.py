@@ -17,7 +17,7 @@ for line in data:
     if nisect:
         total += 1 << (nisect - 1)
         cardn = int(m.group(1))
-        for idx in range(cardn+1, cardn+1+nisect):
+        for idx in range(cardn + 1, cardn + 1 + nisect):
             card_total[idx] += card_total[cardn]
 print(total)
 print(sum(card_total.values()))
