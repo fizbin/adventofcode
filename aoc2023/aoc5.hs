@@ -1,10 +1,9 @@
 import Data.Char (isSpace)
-import Data.List (foldl')
 import Data.List.Split (splitOn)
 import System.Environment (getArgs)
-
 -- import Debug.Trace
-import Control.Monad (foldM)
+import Control.Category ((>>>))
+import Control.Monad ((>=>))
 
 read3Int :: String -> (Int, Int, Int)
 read3Int s =
@@ -19,11 +18,12 @@ mkFuncP1 (dstart, sstart, rlen) seed =
         then ([], [seed + dstart - sstart])
         else ([seed], [])
 
+-- Join two functions with the convention "input -> (input to retry, output)"
 (>+>) :: (a -> ([a], [b])) -> (a -> ([a], [b])) -> (a -> ([a], [b]))
 (f1 >+> f2) val =
     let (firstL, firstR) = f1 val
         secondResult = map f2 firstL
-     in foldl' (\(a, b) (c, d) -> (a ++ c, b ++ d)) ([], firstR) secondResult
+     in foldr (\(a, b) (c, d) -> (a ++ c, b ++ d)) ([], firstR) secondResult
 
 mkMapP1 :: String -> Int -> Int
 mkMapP1 mapStr =
@@ -63,9 +63,11 @@ main = do
     let filename = if null args then "aoc5.in" else head args
     (seedData : mapData) <- splitOn "\n\n" <$> readFile filename
     let seedNums = map read $ words $ tail $ dropWhile (/= ':') seedData
-    let finalSeeds = map (\x -> foldl' (flip ($)) x (map mkMapP1 mapData)) seedNums
+    -- let finalSeeds = map (\x -> foldl' (flip ($)) x (map mkMapP1 mapData)) seedNums
+    let finalSeeds = foldr1 (>>>) (map mkMapP1 mapData) <$> seedNums
     print $ minimum finalSeeds
     let mkPairs (a : b : r) = (a, b) : mkPairs r; mkPairs [] = []; mkPairs _ = error "odd length"
     let seedPairs = mkPairs seedNums
-    let finalPairs = (\x -> foldM (flip ($)) x (map mkMapP2 mapData)) =<< seedPairs
+    -- let finalPairs = (\x -> foldM (flip ($)) x (map mkMapP2 mapData)) =<< seedPairs
+    let finalPairs = foldr1 (>=>) (map mkMapP2 mapData) =<< seedPairs
     print $ minimum $ map fst finalPairs
