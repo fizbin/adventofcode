@@ -2,13 +2,16 @@ import Control.Arrow (second)
 
 -- import Control.Monad (forM_)
 import Data.Char (isSpace)
-import Data.List (elemIndex, foldl', sort, sortOn)
+import Data.List (elemIndex, sort, sortOn)
 import Data.Maybe (fromJust)
 import Data.Set qualified as S
 import System.Environment (getArgs)
 
+data HandType = HighCard | OnePair | TwoPair | ThreeOfAKind | FullHouse | FourOfAKind | FiveOfAKind
+        deriving (Eq, Ord)
+
 mostFrequent :: (Ord a) => [a] -> (a, Int)
-mostFrequent [] = error "empty mostFrquent"
+mostFrequent [] = error "empty mostFrequent"
 mostFrequent a@(x : _) = go (x, 1) (sort a)
     where
         go sofar [] = sofar
@@ -18,43 +21,35 @@ mostFrequent a@(x : _) = go (x, 1) (sort a)
                     newsofar = if ycount > snd sofar then (y, ycount) else sofar
                  in go newsofar noty
 
-handType1 :: String -> Int
+handType1 :: String -> HandType
 handType1 hand =
         let dcount = S.size $ S.fromList hand
             (_, mfreq) = mostFrequent hand
          in case dcount of
-                1 -> 7
-                2 -> if mfreq == 4 then 6 else 5
-                3 -> if mfreq == 3 then 4 else 3
-                4 -> 2
-                _ -> 1
+                1 -> FiveOfAKind
+                2 -> if mfreq == 4 then FourOfAKind else FullHouse
+                3 -> if mfreq == 3 then ThreeOfAKind else TwoPair
+                4 -> OnePair
+                _ -> HighCard
 
-handScore1 :: String -> Int
-handScore1 hand =
-        foldl'
-                (\sofar card -> 100 * sofar + fromJust (elemIndex card "023456789TJQKA"))
-                (handType1 hand)
-                hand
+handScore1 :: String -> (HandType, [Int])
+handScore1 hand = (handType1 hand, map (fromJust . (`elemIndex` "023456789TJQKA")) hand)
 
-handType2 :: String -> Int
+handType2 :: String -> HandType
 handType2 hand =
         let dcount = S.size $ S.fromList (filter (/= 'J') hand)
             (_, mfreq0) = mostFrequent (filter (/= 'J') hand)
             mfreq = mfreq0 + length (filter (== 'J') hand)
          in case dcount of
-                0 -> 7
-                1 -> 7
-                2 -> if mfreq == 4 then 6 else 5
-                3 -> if mfreq == 3 then 4 else 3
-                4 -> 2
-                _ -> 1
+                0 -> FiveOfAKind
+                1 -> FiveOfAKind
+                2 -> if mfreq == 4 then FourOfAKind else FullHouse
+                3 -> if mfreq == 3 then ThreeOfAKind else TwoPair
+                4 -> OnePair
+                _ -> HighCard
 
-handScore2 :: String -> Int
-handScore2 hand =
-        foldl'
-                (\sofar card -> 100 * sofar + fromJust (elemIndex card "0J23456789TQKA"))
-                (handType2 hand)
-                hand
+handScore2 :: String -> (HandType, [Int])
+handScore2 hand = (handType2 hand, map (fromJust . (`elemIndex` "0J23456789TQKA")) hand)
 
 main :: IO ()
 main = do
