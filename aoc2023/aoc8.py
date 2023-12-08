@@ -23,16 +23,29 @@ while where != "ZZZ":
 print(steps)
 
 fast_forward_map = {}
+get_to_z_early_spots = set()
 for start in spotmap:
     where = start
     for idx, todo in enumerate(lr_list):
-        if where.endswith("Z") and start.endswith("A"):
-            raise ValueError(f"Assumptions violated {start} goes to {where} at {idx}")
+        if idx > 0 and where.endswith("Z"):
+            get_to_z_early_spots.add(start)
         if todo == "L":
             where = spotmap[where][0]
         else:
             where = spotmap[where][1]
     fast_forward_map[start] = where
+
+start_network = set(x for x in spotmap if x.endswith("A"))
+ssize = 0
+while ssize < len(start_network):
+    ssize = len(start_network)
+    start_network.update(sorted(fast_forward_map[x] for x in start_network))
+
+if get_to_z_early_spots & start_network:
+    raise ValueError(
+        "Assumptions violated by these start_network places that get to '*z' early:"
+        + str(sorted(get_to_z_early_spots & start_network))
+    )
 
 factors = []
 for start in [x for x in spotmap if x.endswith("A")]:
