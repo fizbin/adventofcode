@@ -56,15 +56,16 @@ for start in [x for x in spotmap if x.endswith("A")]:
     while where not in beenthere:
         beenthere.update({where: jumps})
         if where.endswith("Z"):
-            zjumps.append(jumps)
+            zjumps.append((jumps, where))
         where = fast_forward_map[where]
         jumps += 1
     if beenthere[where] != 1:
         raise ValueError(
             f"Assumptions violated: {start} loops back to restart at {beenthere[where]} at {where}"
         )
-    if len(zjumps) != 1 or zjumps[0] != jumps - 1:
+    if len(zjumps) != 1 or zjumps[0][0] != jumps - 1:
         raise ValueError(f"Assumptions violated: {zjumps} out of loop found at {jumps}")
     factors.append(jumps - 1)
+    print(f"DBG: {start} {zjumps} {where}")
 
 print(len(lr_list) * math.lcm(*factors))
