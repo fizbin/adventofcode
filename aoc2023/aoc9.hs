@@ -1,10 +1,8 @@
 import System.Environment (getArgs)
 
 inferNext :: [Int] -> Int
-inferNext xs | all (== 0) xs = 0
-inferNext xs =
-        let diffs = zipWith (-) (tail xs) xs
-         in last xs + inferNext diffs
+inferNext [] = 0
+inferNext xs = last xs + inferNext (zipWith (-) (tail xs) xs)
 
 main :: IO ()
 main = do
