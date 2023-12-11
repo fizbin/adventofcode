@@ -1,9 +1,9 @@
+import Control.Monad (guard)
+import Data.List (foldl')
 import Data.Map qualified as M
 import Data.Maybe (maybeToList)
 import Data.Set qualified as S
 import System.Environment (getArgs)
-import Control.Monad (guard)
-import Data.List (foldl')
 
 pipeDir :: M.Map Char [(Int, Int)]
 pipeDir =
@@ -39,7 +39,7 @@ findSloop grid =
     where
         travel :: S.Set (Int, Int) -> (Int, Int) -> [(Int, Int)]
         travel seen nowAt =
-                let nexts :: [(Int,Int)]
+                let nexts :: [(Int, Int)]
                     nexts = do
                         ch <- maybeToList (grid `getC` nowAt)
                         d <- pipeDir M.! ch
@@ -50,7 +50,7 @@ findSloop grid =
                         pure p
                  in case nexts of
                         [] -> [nowAt]
-                        (n:_) -> nowAt : travel (n `S.insert` seen) n
+                        (n : _) -> nowAt : travel (n `S.insert` seen) n
 
 main :: IO ()
 main = do
@@ -60,8 +60,8 @@ main = do
         let sLoop = findSloop grid
             sLoopPairs = zip sLoop (tail sLoop ++ [head sLoop])
         print $ length sLoop `div` 2
-        let windingP1 = [((i, j), 1) | (von, zu) <- sLoopPairs, zu == (1, 0) `addC` von, i <- [fst zu], j <- [0..snd zu - 1]]
-            windingP2 = [((i, j), -1) | (von, zu) <- sLoopPairs, zu == (-1, 0) `addC` von, i <- [fst von], j <- [0..snd von - 1]]
+        let windingP1 = [((i, j), 1) | (von, zu) <- sLoopPairs, zu == (1, 0) `addC` von, i <- [fst zu], j <- [0 .. snd zu - 1]]
+            windingP2 = [((i, j), -1) | (von, zu) <- sLoopPairs, zu == (-1, 0) `addC` von, i <- [fst von], j <- [0 .. snd von - 1]]
             windings' = M.fromListWith (+) (windingP1 ++ windingP2) :: M.Map (Int, Int) Int
             windings = foldl' (flip M.delete) windings' sLoop
         print $ length $ filter (/= 0) $ M.elems windings
