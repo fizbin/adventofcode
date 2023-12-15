@@ -71,7 +71,7 @@ def roll_cycle(coldata):
 
 
 def get_signature(grid):
-    return hashlib.sha256("".join("".join(row) for row in grid).encode("ascii")).hexdigest()
+    return hashlib.sha256("\n".join("".join(row) for row in grid).encode("ascii")).hexdigest()
 
 
 cycle_sigs = {}
@@ -81,7 +81,7 @@ while True:
     sig = get_signature(grid)
     c_num += 1
     if sig in cycle_sigs:
-        print(f"FOUND! {c_num} is same as {cycle_sigs[sig]}")
+        # print(f"FOUND! {c_num} is same as {cycle_sigs[sig]}")
         break
     cycle_sigs[sig] = c_num
     if c_num % 1000 == 0:
