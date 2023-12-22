@@ -144,7 +144,19 @@ for grid_x_disp in range(-target_steps // mydims[0] - 3, target_steps // mydims[
     else:  # grid_x_0
         dist_to_mr_yd_n1 = elf_dist_0[:, 0].min() + 1
         dist_to_ml_yd_1 = elf_dist_0[:, -1].min() + 1
-        for grid_y_disp in range(-target_steps // mydims[0] - 3, target_steps // mydims[0] + 3):
+        min_yd = -target_steps // mydims[0] - 3
+        max_yd = target_steps // mydims[0] + 3
+        careful_y_range = range(min_yd, max_yd + 1)
+        if (max_yd - min_yd) > 30:
+            begin_carefree = int(min_yd + 10)
+            end_carefree = int(max_yd - 10)
+            if (end_carefree - begin_carefree) % 2 == 1:
+                begin_carefree += 1
+            careful_y_range = list(range(min_yd, begin_carefree)) + list(
+                range(end_carefree, max_yd + 1)
+            )
+            retval += int(elfgridA.sum() + elfgridB.sum()) * (end_carefree - begin_carefree) // 2
+        for grid_y_disp in careful_y_range:
             if grid_y_disp < 0:
                 dist_to_mr = dist_to_mr_yd_n1 + (-1 - grid_y_disp) * mydims[1]
                 bit = elf_coverage((s_spot[0], mydims[1] - 1), target_steps - dist_to_mr)

@@ -33,14 +33,24 @@ set_grid_spots = set()
 dims = chargrid.shape
 elfpos = dict([(0j, np.where(chargrid == "S", 1, 0).astype(bool))])
 convtmp = np.zeros_like(elfpos[0j])
+
+
 def calc_size(step):
-    retval = sum(v.sum() for (idx,v) in elfpos.items() if idx not in set_grid_spots)
+    retval = sum(v.sum() for (idx, v) in elfpos.items() if idx not in set_grid_spots)
     if step % 2:
-        retval += len(elfA_on_odd)*elfgridA.sum() + (len(set_grid_spots) - len(elfA_on_odd))*elfgridB.sum()
+        retval += (
+            len(elfA_on_odd) * elfgridA.sum()
+            + (len(set_grid_spots) - len(elfA_on_odd)) * elfgridB.sum()
+        )
     else:
-        retval += len(elfA_on_odd)*elfgridB.sum() + (len(set_grid_spots) - len(elfA_on_odd))*elfgridA.sum()
+        retval += (
+            len(elfA_on_odd) * elfgridB.sum()
+            + (len(set_grid_spots) - len(elfA_on_odd)) * elfgridA.sum()
+        )
     return retval
-for step in range(501): # 26501365):
+
+
+for step in range(501):  # 26501365):
     # if step % 100 == 0:
     #     print("DBG", step, len(elfpos), len(set_grid_spots), len([x for x in elfpos if x in set_grid_spots]))
     if step in (1, 6, 10, 50, 100, 500, 1000, 5000):
@@ -54,10 +64,10 @@ for step in range(501): # 26501365):
             else:
                 sumline[x] = elfgridB.sum()
         print("DBG:", sumline)
-        for xpart in range(-10,10):
-            for ypart in range(-10,10):
-                if sumline.get(xpart + ypart*1j, 0) != 0:
-                    print("DBG:", (xpart,ypart), sumline.get(xpart + ypart*1j))
+        for xpart in range(-10, 10):
+            for ypart in range(-10, 10):
+                if sumline.get(xpart + ypart * 1j, 0) != 0:
+                    print("DBG:", (xpart, ypart), sumline.get(xpart + ypart * 1j))
         print("DBG:", sum(v for v in sumline.values()))
     nelfpos = collections.defaultdict(lambda: np.zeros_like(convtmp))
     nset_spots = set()
@@ -96,4 +106,4 @@ for step in range(501): # 26501365):
     elfA_on_odd.update(n_gridA_on_odd)
     elfpos = nelfpos
 
-print(calc_size(100 )) # 26501365))
+print(calc_size(100))  # 26501365))

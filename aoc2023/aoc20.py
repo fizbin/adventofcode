@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import aoc_util
-import copy
 import re
 
 
