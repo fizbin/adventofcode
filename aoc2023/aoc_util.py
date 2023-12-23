@@ -1,14 +1,17 @@
 import itertools
 import re
 import sys
-from typing import List, Callable, Optional, Sequence, Set, Tuple, TypeVar
+from typing import List, Callable, Optional, Sequence, Set, Tuple, TypeVar, TYPE_CHECKING
 import heapq
 
 import numpy as np
 
+if TYPE_CHECKING:
+    from _typeshed import SupportsRichComparison
 
 X = TypeVar("X")
 Y = TypeVar("Y")
+XS = TypeVar("XS", bound="SupportsRichComparison")
 
 
 def get_data(problem_num: int) -> str:
@@ -92,13 +95,13 @@ def rolling(n, iterable):
 
 def astar(
     *,
-    start: Optional[X] = None,
-    starts: Optional[Sequence[X]] = None,
-    goalf: Callable[[X], bool],
-    neighborf: Optional[Callable[[X], Sequence[X]]] = None,
-    neighbor_distf: Optional[Callable[[X], Sequence[Tuple[X, int]]]] = None,
-    estimatef: Callable[[X], int] = lambda _: 0,
-) -> Optional[Tuple[int, List[X]]]:
+    start: Optional[XS] = None,
+    starts: Optional[Sequence[XS]] = None,
+    goalf: Callable[[XS], bool],
+    neighborf: Optional[Callable[[XS], Sequence[XS]]] = None,
+    neighbor_distf: Optional[Callable[[XS], Sequence[Tuple[XS, int]]]] = None,
+    estimatef: Callable[[XS], int] = lambda _: 0,
+) -> Optional[Tuple[int, List[XS]]]:
     """
     Dijkstra/A* search. All arguments use named parameters.
 
@@ -120,6 +123,7 @@ def astar(
         neighbor_distf is None
     ), "Exactly one of neighborf and neighbor_distf must be given"
     if starts is None:
+        assert start is not None  # mypy
         starts = [start]
     if neighbor_distf is None:
 
@@ -127,8 +131,8 @@ def astar(
             return [(n, 1) for n in neighborf(spot)]
 
         neighbor_distf = default_neighbor_dist
-    visited: Set[X] = set()
-    workq: List[Tuple[int, int, Tuple, X]]
+    visited: Set[XS] = set()
+    workq: List[Tuple[int, int, Tuple, XS]]
     workq = [(0, 0, (spot, ()), spot) for spot in sorted(starts)]
     while workq:
         (_, cost_so_far, path_tup, pos) = heapq.heappop(workq)
