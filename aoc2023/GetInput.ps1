@@ -11,4 +11,4 @@ $cookie.Value = (Get-Content session.txt -Raw).Trim()
 $cookie.Domain = "adventofcode.com"
 $session.Cookies.Add($cookie);
 
-Invoke-WebRequest $remoteFileLocation -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
+Invoke-WebRequest $remoteFileLocation -UserAgent "https://github.com/fizbin/adventofcode/blob/main/aoc2023/GetInput.ps1 by fizbin@gmail.com" -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
