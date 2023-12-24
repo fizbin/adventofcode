@@ -11,4 +11,6 @@ $cookie.Value = (Get-Content session.txt -Raw).Trim()
 $cookie.Domain = "adventofcode.com"
 $session.Cookies.Add($cookie);
 
-Invoke-WebRequest $remoteFileLocation -UserAgent "https://github.com/fizbin/adventofcode/blob/main/aoc2023/GetInput.ps1 by fizbin@gmail.com" -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
+# Needed because it's invalid (RFC9110) to include a URL in a User-Agent string
+$PSDefaultParameterValues['Invoke-WebRequest:SkipHeaderValidation'] = $true
+Invoke-WebRequest $remoteFileLocation -UserAgent "https://github.com/fizbin/adventofcode/blob/main/aoc2023/GetInput.ps1 by fizbin-at-gmail.com" -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
