@@ -14,6 +14,7 @@ max_coord = 400000000000000
 # min_coord = 7
 # max_coord = 27
 
+
 def find_intersect_2D(stoneA, stoneB):
     (xA, yA, _1, vxA, vyA, _2) = stoneA
     (xB, yB, _1, vxB, vyB, _2) = stoneB
@@ -34,12 +35,13 @@ def find_intersect_2D(stoneA, stoneB):
     t1 /= vmatdet
     t2 = vmati[1][0] * (xA - xB) + vmati[1][1] * (yA - yB)
     t2 /= vmatdet
-    xInter = xA + t1*vxA
-    yInter = yA + t1*vyA
+    xInter = xA + t1 * vxA
+    yInter = yA + t1 * vyA
     return (xInter, yInter, t1, t2)
-    
+
+
 total = 0
-for (stoneA, stoneB) in itertools.combinations(stones, 2):
+for stoneA, stoneB in itertools.combinations(stones, 2):
     inter = find_intersect_2D(stoneA, stoneB)
 
     if inter is None:
@@ -112,7 +114,7 @@ print(total)
 print()
 print("(* Feed the following into wolfram cloud as one cell, then evaluate *)")
 print("r = Solve[{")
-for (idx, stone) in enumerate(stones[0:3]):
+for idx, stone in enumerate(stones[0:3]):
     print(f"rx + t{idx}*(rvx - ({stone[3]})) == {stone[0]},")
     print(f"ry + t{idx}*(rvy - ({stone[4]})) == {stone[1]},")
     print(f"rz + t{idx}*(rvz - ({stone[5]})) == {stone[2]}{'' if idx==2 else ','}")
