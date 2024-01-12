@@ -63,6 +63,7 @@ for x, row in enumerate(grid):
             choice_spots[(x, y)] = good_nbs
 
 choice_grid = {}
+longest_entrance = {}
 for nexus in choice_spots:
     this_toward = []
     for nb in choice_spots[nexus]:
@@ -76,44 +77,45 @@ for nexus in choice_spots:
             vis.add(nb)
         if nb[0] == 0 or nb[0] == height - 1:
             choice_grid[nb] = [(nexus, len(vis) - 1)]
+            longest_entrance[nb] = len(vis) - 1
         this_toward.append((nb, len(vis) - 1))
+    longest_entrance[nexus] = max(dist for (_, dist) in this_toward)
+    # only allow the single "out" from the node that's the unique node that
+    # can reach the exit
+    if any(nb[0] == height - 1 for (nb, _) in this_toward):
+        this_toward = [(nb, dist) for (nb, dist) in this_toward if nb[0] == height - 1]
     choice_grid[nexus] = this_toward
-
-# compd = (
-#     dict(
-#         sorted(
-#             ((y, x), sorted(((yi, xi), -dist) for ((xi, yi), dist) in ent))
-#             for ((x, y), ent) in choice_grid.items()
-#         )
-#     )
-# )
-# print(compd)
-# print(len(choice_grid))
-# print(sum((2 ** len(choice_grid[xus])) for xus in choice_grid))
-# print(sum(1 for xus in choice_grid if len(choice_grid[xus]) == 4))
 
 
 def p2() -> int:
-    been_here: dict[tuple[tuple[int, int], frozenset[tuple[int, int]]], int] = {}
-    workq = [(0, (0, 1), frozenset())]
+    max_potential = sum(longest_entrance.values()) - longest_entrance[(0, 1)]
+    print("max_potential", max_potential)
+    pos_map = dict((v, idx) for (idx, v) in enumerate(sorted(choice_grid)))
+    longest_entrance_ = dict((pos_map[k], v) for (k, v) in longest_entrance.items())
+    choice_grid_ = dict(
+        (pos_map[k], [(pos_map[nb], dist) for (nb, dist) in v]) for (k, v) in choice_grid.items()
+    )
+    end = max(pos_map.values())
+    workq = [(0, max_potential, 0, 0)]
     maxlen = 0
     while workq:
-        (neg_sofar, pos, visited) = heapq.heappop(workq)
-        if (pos, visited) in been_here:
-            if been_here[(pos, visited)] <= neg_sofar:
-                # already have longer path
-                continue
-        been_here[(pos, visited)] = neg_sofar
-        if pos[0] == height - 1:
+        (neg_sofar, pot, pos, visited) = heapq.heappop(workq)
+        if maxlen >= pot:
+            # can already do better than best of this
+            continue
+        if pos == end:
             maxlen0 = maxlen
             maxlen = max(maxlen, -neg_sofar)
             if maxlen0 != maxlen:
                 print("DBG", maxlen)
-        nvisited = visited | frozenset([pos])
-        for dest_pos, dest_d in choice_grid[pos]:
-            if dest_pos not in visited:
-                heapq.heappush(workq, (neg_sofar - dest_d, dest_pos, nvisited))
+        nvisited = visited | (1 << pos)
+        for dest_pos, dest_d in choice_grid_[pos]:
+            if (1 << dest_pos) & visited == 0:
+                pot_lost = longest_entrance_[dest_pos] - dest_d
+                heapq.heappush(workq, (neg_sofar - dest_d, pot - pot_lost, dest_pos, nvisited))
     return maxlen
 
+
+# print(json.dumps({str(k):v for (k, v) in choice_grid.items()}, sort_keys=True))
 
 print(p2())
