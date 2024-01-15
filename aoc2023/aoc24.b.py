@@ -124,18 +124,16 @@ print(total)
 # This is the "triple scalar product" of our threee coplanar vectors.
 # Remember for any three vectors u, v, and w:
 #     (u ⨯ v) . w == (v ⨯ w) . u
-#                 == (w ⨯ u) . v
-#                 == -(v ⨯ u) . w
-#                 == -(w ⨯ v) . u
-#                 == -(u ⨯ w) . v
+#
+# Also, for any two vectors u and v, (u ⨯ v) == (u ⨯ (v - u))
 #
 # Then:
 # ((s1v - rv) ⨯ (s2v - rv)) . (s1 - s2) == 0
-# (s1v ⨯ s2v - rv ⨯ s2v - s1v ⨯ rv) . (s1 - s2) == 0
-# s1v ⨯ s2v . (s1-s2) - rv ⨯ s2v . (s1-s2) - s1v ⨯ rv . (s1-s2) == 0
-# s1v ⨯ s2v . (s1-s2) == rv ⨯ s2v . (s1-s2) + s1v ⨯ rv . (s1-s2)
-# s1v ⨯ s2v . (s1-s2) == - ((s1-s2) ⨯ s2v . rv) + ((s1-s2) ⨯ s1v . rv)
-# s1v ⨯ s2v . (s1-s2) == ((s1-s2) ⨯ (s1v-s2v)) . rv
+# ((s1v - rv) ⨯ (s2v - rv - (s1v - rv))) . (s1 - s2) == 0
+# ((s1v - rv) ⨯ (s2v - s1v)) . (s1 - s2) == 0
+# ((s1v - rv) ⨯ (s1v - s2v)) . (s1 - s2) == -0 == 0
+# ((s1v - s2v) ⨯ (s1 - s2)) . (s1v - rv) == 0
+# ((s1v - s2v) ⨯ (s1 - s2)) . s1v == ((s1v - s2v) ⨯ (s1 - s2)) . rv
 #
 # then we use the fact that matrix multiplication of a matrix by a column
 # vector is the same as considering each row of the matrix as a row vector
@@ -158,8 +156,9 @@ for stoneA, stoneB in (
     sB = np.array([sBx, sBy, sBz])
     sAv = np.array([sAvx, sAvy, sAvz])
     sBv = np.array([sBvx, sBvy, sBvz])
-    x_vals.append(np.dot(np.cross(sAv, sBv), sA - sB))
-    a_rows.append(np.cross(sA - sB, sAv - sBv))
+    crossVec = np.cross(sAv - sBv, sA - sB)
+    x_vals.append(np.dot(crossVec, sAv))
+    a_rows.append(crossVec)
 
 rv = np.linalg.solve(a_rows, x_vals)
 
@@ -170,4 +169,4 @@ xInter, yInter, t1, _ = find_intersect_2D(
     stone1[0:3] + tuple(np.array(stone1[3:6]) - rv), stone2[0:3] + tuple(np.array(stone2[3:6]) - rv)
 )
 zInter = stone1[2] + t1 * (stone1[5] - rv[2])
-print(math.floor(xInter + yInter + zInter + 0.1))
+print(math.floor(xInter + yInter + zInter + 0.5))
