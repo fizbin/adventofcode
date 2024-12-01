@@ -64,11 +64,22 @@ func main() {
 	fmt.Println("Part 1:", total)
 
 	total = 0
+	row2idx := 0
+	row2count := int64(0)
 	for _, val1 := range row1 {
-		for _, val2 := range row2 {
-			if val1 == val2 {
-				total += val1
+		for (row2idx < len(row2)) && (row2[row2idx] < val1) {
+			row2count = 0
+			row2idx += 1
+		}
+		if (row2idx < len(row2)) && (row2[row2idx] == val1) && (row2count == 0) {
+			row2count = 1
+			for (row2idx+1 < len(row2)) && (row2[row2idx+1] == val1) {
+				row2idx += 1
+				row2count += 1
 			}
+		}
+		if row2idx < len(row2) {
+			total += row2count * val1
 		}
 	}
 	fmt.Println("Part 2:", total)

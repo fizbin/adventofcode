@@ -13,4 +13,4 @@ $session.Cookies.Add($cookie);
 
 # Needed because it's invalid (RFC9110) to include a URL in a User-Agent string
 $PSDefaultParameterValues['Invoke-WebRequest:SkipHeaderValidation'] = $true
-Invoke-WebRequest $remoteFileLocation -UserAgent "https://github.com/fizbin/adventofcode/blob/main/aoc2024/GetInput.ps1 by fizbin-at-gmail.com" -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
+Invoke-WebRequest $remoteFileLocation -UserAgent "https://github.com/fizbin/adventofcode by fizbin-at-gmail.com" -WebSession $session -TimeoutSec 900 -OutFile $downloadToPath
