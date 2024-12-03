@@ -1,11 +1,6 @@
-import System.Environment (getArgs)
-import Data.Char (isSpace)
-
-splits :: [a] -> [([a],[a])]
-splits = splits' []
-  where
-    splits' a [] = [(a, [])]
-    splits' a allb@(b:bs) = (a, allb) : splits' (a ++ [b]) bs
+import System.Environment ( getArgs )
+import Data.Char ( isSpace )
+import Data.List ( inits, tails )
 
 readsLine :: String -> [([Int], String)]
 readsLine "" = [([], "")]
@@ -28,7 +23,7 @@ isSafe x = isSafeUp x || isSafeDown x
 
 isSafe2 :: [Int] -> Bool
 isSafe2 [] = True
-isSafe2 a = isSafe a || or [isSafe (x ++ y) | (x, _:y) <- splits a]
+isSafe2 a = isSafe a || any isSafe (zipWith (++) (inits a) (tail $ tails a))
 
 main :: IO ()
 main = do
