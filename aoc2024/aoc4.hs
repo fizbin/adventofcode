@@ -1,3 +1,4 @@
+import Control.Monad (guard)
 import Data.Array.IArray
 import Data.Array.Unboxed (UArray)
 import Data.List (tails, transpose)
@@ -28,18 +29,18 @@ main = do
     length $
       filter (\s -> s == "XMAS" || s == "SAMX") $
         horizwords grid ++ vertwords grid ++ diag1words grid ++ diag2words grid
+  let gridWithBuffer = map (\x -> ' ' : x ++ " ") $ (\y -> y : grid ++ [y]) (replicate (length $ head grid) ' ')
   let gridArray :: UArray (Int, Int) Char
-      gridArray = listArray ((-1, -1), (length grid, length $ head grid)) 
-                            (replicate (2 + length (head grid)) ' ' ++ concatMap (\x -> " " ++ x ++ " ") grid ++ replicate (2 + length (head grid)) ' ')
-  let foundList =
-        [ () | ((x, y), v) <- assocs gridArray,
-               v == 'A',
-               gridArray ! (x - 1, y - 1) `elem` "MS",
-               gridArray ! (x - 1, y + 1) `elem` "MS",
-               gridArray ! (x + 1, y - 1) `elem` "MS",
-               gridArray ! (x + 1, y + 1) `elem` "MS",
-               gridArray ! (x + 1, y - 1) /= gridArray ! (x - 1, y + 1),
-               gridArray ! (x - 1, y - 1) /= gridArray ! (x + 1, y + 1)
-        ]
+      gridArray = listArray ((-1, -1), (length grid, length $ head grid)) (concat gridWithBuffer)
+  let foundList = do
+        ((x, y), v) <- assocs gridArray
+        guard $ v == 'A'
+        guard $ gridArray ! (x - 1, y - 1) `elem` "MS"
+        guard $ gridArray ! (x - 1, y + 1) `elem` "MS"
+        guard $ gridArray ! (x + 1, y - 1) `elem` "MS"
+        guard $ gridArray ! (x + 1, y + 1) `elem` "MS"
+        guard $ gridArray ! (x + 1, y - 1) /= gridArray ! (x - 1, y + 1)
+        guard $ gridArray ! (x - 1, y - 1) /= gridArray ! (x + 1, y + 1)
+        pure ()
   putStr "Part 2: "
   print $ length foundList
