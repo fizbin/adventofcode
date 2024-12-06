@@ -13,17 +13,19 @@ for book in books.splitlines():
             out_of_order.append(pages)
             break
     else:
-        total += int(pages[len(pages)//2])
+        total += int(pages[len(pages) // 2])
 print("Part 1:", total)
 
+
 def sort_book(bk):
-    for lowidx in range(len(bk)-1):
-        for highidx in range(lowidx+1, len(bk)):
+    for lowidx in range(len(bk) - 1):
+        for highidx in range(lowidx + 1, len(bk)):
             if f"{bk[highidx]}|{bk[lowidx]}" in ruleset:
                 bk[highidx], bk[lowidx] = bk[lowidx], bk[highidx]
+
 
 total = 0
 for pages in out_of_order:
     sort_book(pages)
-    total += int(pages[len(pages)//2])
+    total += int(pages[len(pages) // 2])
 print("Part 2:", total)
