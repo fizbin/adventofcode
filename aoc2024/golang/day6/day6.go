@@ -98,7 +98,7 @@ func main() {
 	fmt.Println("Part 1:", total)
 
 	total = 0
-	for obspot, _ := range guardhist {
+	for obspot := range guardhist {
 		if obspot != guardstart {
 			if checkObstacle(cmap, guardstart, obspot) {
 				total += 1

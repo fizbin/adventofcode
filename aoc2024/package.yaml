@@ -14,6 +14,7 @@ dependencies:
   - bytestring
   - array
   - linear
+  - list-t
   - data-default
 default-extensions:
 - LambdaCase
@@ -39,8 +40,8 @@ executables:
   # aoc3: { "main": "aoc3.hs", "source-dirs": "." }
   # aoc3b: { "main": "aoc3b.hs", "source-dirs": "." }
   # aoc4: { "main": "aoc4.hs", "source-dirs": "." }
-  aoc5: { "main": "aoc5.hs", "source-dirs": "." }
-  # aoc6: { "main": "aoc6.hs", "source-dirs": "." }
+  # aoc5: { "main": "aoc5.hs", "source-dirs": "." }
+  aoc6: { "main": "aoc6.hs", "source-dirs": "." }
   # aoc7: { "main": "aoc7.hs", "source-dirs": "." }
   # aoc8: { "main": "aoc8.hs", "source-dirs": "." }
   # aoc8b: { "main": "aoc8b.hs", "source-dirs": "." }
