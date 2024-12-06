@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"sync"
 )
 
 type Location struct {
@@ -97,12 +99,25 @@ func main() {
 	}
 	fmt.Println("Part 1:", total)
 
-	total = 0
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	results := make(chan bool, len(guardhist))
+	var wg sync.WaitGroup
 	for obspot := range guardhist {
 		if obspot != guardstart {
-			if checkObstacle(cmap, guardstart, obspot) {
-				total += 1
-			}
+			wg.Add(1)
+			go func(obspot Location) {
+				defer wg.Done()
+				results <- checkObstacle(cmap, guardstart, obspot)
+			}(obspot)
+		}
+	}
+	wg.Wait()
+	close(results)
+
+	total = 0
+	for result := range results {
+		if result {
+			total += 1
 		}
 	}
 	fmt.Println("Part 2:", total)

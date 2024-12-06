@@ -16,6 +16,7 @@ dependencies:
   - linear
   - list-t
   - data-default
+  - unordered-containers
 default-extensions:
 - LambdaCase
 - ImportQualifiedPost
