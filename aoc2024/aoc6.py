@@ -8,7 +8,6 @@ for idx, row in enumerate(data):
         cmap[idx + 1j * cidx] = spot
         if spot == "^":
             guardstart = idx + 1j * cidx
-            cmap[idx + 1j * cidx] = "."
 
 # My convention, established above when I read the input in,
 # is that "up" is -1 and "right" is 0+1j, so to turn "up"
