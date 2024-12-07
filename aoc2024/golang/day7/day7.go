@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+type iPair struct {
+	fst uint64
+	snd uint64
+}
 
 func intConcat(a uint64, b uint64) uint64 {
 	base := uint64(1)
@@ -56,8 +63,9 @@ func main() {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
-	total1 := uint64(0)
-	total2 := uint64(0)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	results := make(chan iPair, 1000)
+	var wg sync.WaitGroup
 	for scanner.Scan() {
 		line := scanner.Text()
 		splitted := strings.Split(line, ":")
@@ -76,12 +84,23 @@ func main() {
 			}
 			nums = append(nums, n)
 		}
-		if getAns2(nums, 1, nums[0], lineval) {
-			total1 += lineval
-			total2 += lineval
-		} else if getAns3(nums, 1, nums[0], lineval) {
-			total2 += lineval
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if getAns2(nums, 1, nums[0], lineval) {
+				results <- iPair{lineval, lineval}
+			} else if getAns3(nums, 1, nums[0], lineval) {
+				results <- iPair{0, lineval}
+			}
+		}()
+	}
+	wg.Wait()
+	close(results)
+	total1 := uint64(0)
+	total2 := uint64(0)
+	for mypair := range results {
+		total1 += mypair.fst
+		total2 += mypair.snd
 	}
 	fmt.Println("Part 1:", total1)
 	fmt.Println("Part 2:", total2)
