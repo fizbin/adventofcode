@@ -10,22 +10,22 @@ parseLine s = head parsed
 
 checkAns1 :: Int -> [Int] -> Bool
 checkAns1 _ [] = False
-checkAns1 goal (n:nums) = doCheck nums n
+checkAns1 goal (n:nums) = doCheck n nums
   where
-    doCheck [] a = a == goal
-    doCheck _ sofar | sofar > goal = False
-    doCheck (x:xs) sofar = doCheck xs (sofar + x) || doCheck xs (sofar*x)
+    doCheck sofar _ | sofar > goal = False
+    doCheck sofar [] = sofar == goal
+    doCheck sofar (x:xs) = doCheck (sofar + x) xs || doCheck (sofar*x) xs
 
 concatNum :: Int -> Int -> Int
 concatNum a b = read $ show a ++ show b
 
 checkAns2 :: Int -> [Int] -> Bool
 checkAns2 _ [] = False
-checkAns2 goal (n:nums) = doCheck nums n
+checkAns2 goal (n:nums) = doCheck n nums
   where
-    doCheck [] a = a == goal
-    doCheck _ sofar | sofar > goal = False
-    doCheck (x:xs) sofar = doCheck xs (sofar + x) || doCheck xs (sofar*x) || doCheck xs (concatNum sofar x) 
+    doCheck sofar [] = sofar == goal
+    doCheck sofar _ | sofar > goal = False
+    doCheck sofar (x:xs) = doCheck (sofar + x) xs || doCheck (sofar*x) xs || doCheck (concatNum sofar x) xs
 
 main :: IO ()
 main = do
