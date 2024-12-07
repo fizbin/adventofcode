@@ -14,26 +14,32 @@ type Location struct {
 	y int
 }
 
-type Direction struct {
-	x int
-	y int
+func TurnRight(d int) int {
+	return (d + 1) % 4
 }
 
-func (d Direction) TurnRight() Direction {
-	return Direction{x: d.y, y: -d.x}
-}
-
-func (where Location) Add(d Direction) Location {
-	return Location{x: where.x + d.x, y: where.y + d.y}
+func (where Location) Add(d int) Location {
+	switch d {
+	case 0:
+		return Location{x: where.x - 1, y: where.y}
+	case 1:
+		return Location{x: where.x, y: where.y + 1}
+	case 2:
+		return Location{x: where.x + 1, y: where.y}
+	case 3:
+		return Location{x: where.x, y: where.y - 1}
+	}
+	log.Fatal("Bad direction", d)
+	return Location{}
 }
 
 type guardState struct {
 	loc Location
-	dir Direction
+	dir int
 }
 
 func checkObstacle(cmap map[Location]rune, guardstart Location, obstacle Location) bool {
-	guarddir := Direction{-1, 0}
+	guarddir := 0
 	guardhist := make(map[guardState]bool)
 	guardspot := guardstart
 	for cmap[guardspot] != '\x00' {
@@ -43,10 +49,14 @@ func checkObstacle(cmap map[Location]rune, guardstart Location, obstacle Locatio
 		guardhist[guardState{guardspot, guarddir}] = true
 		nextspot := guardspot.Add(guarddir)
 		for nextspot == obstacle || cmap[nextspot] == '#' {
-			guarddir = guarddir.TurnRight()
+			guarddir = TurnRight(guarddir)
 			nextspot = guardspot.Add(guarddir)
 		}
 		guardspot = nextspot
+		for nextspot != obstacle && cmap[nextspot] == '.' {
+			guardspot = nextspot
+			nextspot = nextspot.Add(guarddir)
+		}
 	}
 	return false
 }
@@ -83,7 +93,7 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error scanning: %v", err)
 	}
-	guarddir := Direction{-1, 0}
+	guarddir := 0
 	guardhist := make(map[Location]bool)
 	total := 0
 	guardspot := guardstart
@@ -93,7 +103,7 @@ func main() {
 			guardhist[guardspot] = true
 		}
 		for cmap[guardspot.Add(guarddir)] == '#' {
-			guarddir = guarddir.TurnRight()
+			guarddir = TurnRight(guarddir)
 		}
 		guardspot = guardspot.Add(guarddir)
 	}
