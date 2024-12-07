@@ -33,27 +33,29 @@ func (where Location) Add(d int) Location {
 	return Location{}
 }
 
-type guardState struct {
-	loc Location
-	dir int
+func (loc Location) IsIn(height int, width int) bool {
+	return loc.x >= 0 && loc.y >= 0 && loc.x < height && loc.y < width
 }
 
-func checkObstacle(cmap map[Location]rune, guardstart Location, obstacle Location) bool {
+func checkObstacle(grid [][]byte, height int, width int, guardstart Location, obstacle Location) bool {
 	guarddir := 0
-	guardhist := make(map[guardState]bool)
+	guardhist := make([][]byte, height)
+	for idx := range guardhist {
+		guardhist[idx] = make([]byte, width)
+	}
 	guardspot := guardstart
-	for cmap[guardspot] != '\x00' {
-		if guardhist[guardState{guardspot, guarddir}] {
+	for guardspot.IsIn(height, width) {
+		if guardhist[guardspot.x][guardspot.y]&(1<<guarddir) != 0 {
 			return true
 		}
-		guardhist[guardState{guardspot, guarddir}] = true
+		guardhist[guardspot.x][guardspot.y] |= 1 << guarddir
 		nextspot := guardspot.Add(guarddir)
-		for nextspot == obstacle || cmap[nextspot] == '#' {
+		for nextspot == obstacle || (nextspot.IsIn(height, width) && grid[nextspot.x][nextspot.y] == '#') {
 			guarddir = TurnRight(guarddir)
 			nextspot = guardspot.Add(guarddir)
 		}
 		guardspot = nextspot
-		for nextspot != obstacle && cmap[nextspot] == '.' {
+		for nextspot != obstacle && nextspot.IsIn(height, width) && grid[nextspot.x][nextspot.y] == '#' {
 			guardspot = nextspot
 			nextspot = nextspot.Add(guarddir)
 		}
@@ -77,18 +79,24 @@ func main() {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
+	grid := make([][]byte, 0)
 	cmap := make(map[Location]rune)
-	row := 0
+	height := 0
+	width := 0
 	var guardstart Location
 	for scanner.Scan() {
 		line := scanner.Text()
 		for col, spot := range line {
-			cmap[Location{row, col}] = spot
+			cmap[Location{height, col}] = spot
 			if spot == '^' {
-				guardstart = Location{row, col}
+				guardstart = Location{height, col}
+			}
+			if col+1 > width {
+				width = col + 1
 			}
 		}
-		row += 1
+		grid = append(grid, []byte(line))
+		height += 1
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error scanning: %v", err)
@@ -117,7 +125,7 @@ func main() {
 			wg.Add(1)
 			go func(obspot Location) {
 				defer wg.Done()
-				results <- checkObstacle(cmap, guardstart, obspot)
+				results <- checkObstacle(grid, height, width, guardstart, obspot)
 			}(obspot)
 		}
 	}
