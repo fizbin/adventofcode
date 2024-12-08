@@ -19,34 +19,43 @@ type Direction struct {
 	y int
 }
 
-func (d Direction) TurnRight() Direction {
-	return Direction{x: d.y, y: -d.x}
+func TurnRight(d Direction) Direction {
+	return Direction{d.y, -d.x}
 }
 
 func (where Location) Add(d Direction) Location {
-	return Location{x: where.x + d.x, y: where.y + d.y}
+	return Location{where.x + d.x, where.y + d.y}
 }
 
-type guardState struct {
-	loc Location
-	dir Direction
+func (loc Location) IsIn(height int, width int) bool {
+	return loc.x >= 0 && loc.y >= 0 && loc.x < height && loc.y < width
 }
 
-func checkObstacle(cmap map[Location]rune, guardstart Location, obstacle Location) bool {
+func checkObstacle(flatgrid []byte, height int, width int, guardstart Location, obstacle Location) bool {
 	guarddir := Direction{-1, 0}
-	guardhist := make(map[guardState]bool)
+	guarddirNum := 0
+	guardhist := make([]byte, height*width)
 	guardspot := guardstart
-	for cmap[guardspot] != '\x00' {
-		if guardhist[guardState{guardspot, guarddir}] {
+	for guardspot.IsIn(height, width) {
+		if guardhist[guardspot.x*width+guardspot.y]&(1<<guarddirNum) != 0 {
 			return true
 		}
-		guardhist[guardState{guardspot, guarddir}] = true
+		guardhist[guardspot.x*width+guardspot.y] |= 1 << guarddirNum
 		nextspot := guardspot.Add(guarddir)
-		for nextspot == obstacle || cmap[nextspot] == '#' {
-			guarddir = guarddir.TurnRight()
+		for nextspot == obstacle ||
+			(nextspot.IsIn(height, width) &&
+				flatgrid[nextspot.x*width+nextspot.y] == '#') {
+			guarddir = TurnRight(guarddir)
+			guarddirNum = (guarddirNum + 1) % 4
 			nextspot = guardspot.Add(guarddir)
 		}
 		guardspot = nextspot
+		for nextspot != obstacle &&
+			nextspot.IsIn(height, width) &&
+			flatgrid[nextspot.x*width+nextspot.y] == '#' {
+			guardspot = nextspot
+			nextspot = nextspot.Add(guarddir)
+		}
 	}
 	return false
 }
@@ -67,18 +76,24 @@ func main() {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
+	grid := make([][]byte, 0)
 	cmap := make(map[Location]rune)
-	row := 0
+	height := 0
+	width := 0
 	var guardstart Location
 	for scanner.Scan() {
 		line := scanner.Text()
 		for col, spot := range line {
-			cmap[Location{row, col}] = spot
+			cmap[Location{height, col}] = spot
 			if spot == '^' {
-				guardstart = Location{row, col}
+				guardstart = Location{height, col}
+			}
+			if col+1 > width {
+				width = col + 1
 			}
 		}
-		row += 1
+		grid = append(grid, []byte(line))
+		height += 1
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error scanning: %v", err)
@@ -93,12 +108,16 @@ func main() {
 			guardhist[guardspot] = true
 		}
 		for cmap[guardspot.Add(guarddir)] == '#' {
-			guarddir = guarddir.TurnRight()
+			guarddir = TurnRight(guarddir)
 		}
 		guardspot = guardspot.Add(guarddir)
 	}
 	fmt.Println("Part 1:", total)
 
+	flatgrid := make([]byte, 0, width*height)
+	for _, row := range grid {
+		flatgrid = append(flatgrid, row...)
+	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	results := make(chan bool, len(guardhist))
 	var wg sync.WaitGroup
@@ -107,7 +126,7 @@ func main() {
 			wg.Add(1)
 			go func(obspot Location) {
 				defer wg.Done()
-				results <- checkObstacle(cmap, guardstart, obspot)
+				results <- checkObstacle(flatgrid, height, width, guardstart, obspot)
 			}(obspot)
 		}
 	}
