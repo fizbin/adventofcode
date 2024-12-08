@@ -40,4 +40,4 @@ main = do
         let left = repeatWhile nxt1 isInside spot1
         let right = repeatWhile nxt2 isInside spot2
         left ++ right
-  putStrLn $ "Part 1: " ++ show (length antinodes2)
+  putStrLn $ "Part 2: " ++ show (length antinodes2)
