@@ -32,9 +32,10 @@ when:
           "--io-manager=native",
           "-RTS",
           "-with-rtsopts=--io-manager=native",
+          "-rtsopts",
         ]
     else:
-      ghc-options: ["-Wall", "-O2"]
+      ghc-options: ["-Wall", "-O2", "-rtsopts"]
 executables:
   # aoc1: { "main": "aoc1.hs", "source-dirs": "." }
   # aoc2: { "main": "aoc2.hs", "source-dirs": "." }
@@ -43,10 +44,10 @@ executables:
   # aoc4: { "main": "aoc4.hs", "source-dirs": "." }
   # aoc5: { "main": "aoc5.hs", "source-dirs": "." }
   # aoc6: { "main": "aoc6.hs", "source-dirs": "." }
-  aoc7: { "main": "aoc7.hs", "source-dirs": "." }
-  aoc8: { "main": "aoc8.hs", "source-dirs": "." }
+  # aoc7: { "main": "aoc7.hs", "source-dirs": "." }
+  # aoc8: { "main": "aoc8.hs", "source-dirs": "." }
   # aoc8b: { "main": "aoc8b.hs", "source-dirs": "." }
-  # aoc9: { "main": "aoc9.hs", "source-dirs": "." }
+  aoc9: { "main": "aoc9.hs", "source-dirs": "." }
   # aoc10: { "main": "aoc10.hs", "source-dirs": "." }
   # aoc11: { "main": "aoc11.hs", "source-dirs": "." }
   # aoc11b: { "main": "aoc11b.hs", "source-dirs": "." }

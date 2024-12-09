@@ -60,6 +60,10 @@ for fidx, (fileloc, filelen, filenum) in reversed(list(enumerate(filespots))):
         if freelen >= filelen and freeloc < fileloc:
             freespots[freeidx] = (freeloc + filelen, freelen - filelen, -1)
             filespots[fidx] = (freeloc, filelen, filenum)
+            if freelen == filelen:
+                del freespots[freeidx]
+            break
+        if freeloc > fileloc:
             break
 
 dirmap2 = [-1] * len(dirmap)
