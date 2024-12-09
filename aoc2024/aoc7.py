@@ -2,6 +2,7 @@ from aoc_util import get_data_lines
 
 data = get_data_lines(7)
 
+
 def recur2(lst, idx, sofar, goal):
     if idx == len(lst):
         return sofar == goal
