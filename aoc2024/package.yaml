@@ -47,8 +47,8 @@ executables:
   # aoc7: { "main": "aoc7.hs", "source-dirs": "." }
   # aoc8: { "main": "aoc8.hs", "source-dirs": "." }
   # aoc8b: { "main": "aoc8b.hs", "source-dirs": "." }
-  aoc9: { "main": "aoc9.hs", "source-dirs": "." }
-  # aoc10: { "main": "aoc10.hs", "source-dirs": "." }
+  # aoc9: { "main": "aoc9.hs", "source-dirs": "." }
+  aoc10: { "main": "aoc10.hs", "source-dirs": "." }
   # aoc11: { "main": "aoc11.hs", "source-dirs": "." }
   # aoc11b: { "main": "aoc11b.hs", "source-dirs": "." }
   # aoc12: { "main": "aoc12.hs", "source-dirs": "." }
