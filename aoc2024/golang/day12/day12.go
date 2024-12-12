@@ -108,7 +108,7 @@ func main() {
 	}
 	total := 0
 	regionareas := make(map[int]int)
-	for rgnum, _ := range regionmap {
+	for rgnum := range regionmap {
 		area := 0
 		perimeter := 0
 		combineWithNbs(regions, 0, func(up, left, midval, right, down int) int {
@@ -135,7 +135,7 @@ func main() {
 	fmt.Println("Part 1:", total)
 
 	total = 0
-	for rgnum, _ := range regionmap {
+	for rgnum := range regionmap {
 		edgeDetect := combineWithNbs(regions, 0, func(up, left, midval, right, down int) int {
 			if midval != rgnum {
 				return 0
