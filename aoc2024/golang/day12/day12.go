@@ -5,39 +5,25 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 )
 
-func combineWithNbs[S ~[][]E, E any](init S, edge E, combiner func(E, E, E, E, E) E) S {
-	retval := slices.Clone[[][]E](init)
-	for idx, v := range retval {
-		retval[idx] = slices.Clone(v)
+func combineWithNbs[S ~[][]E, E any, F any](init S, edge E, combiner func(E, [4]E) F) [][]F {
+	retval := make([][]F, len(init))
+	for idx, _ := range retval {
+		v := init[idx]
+		retval[idx] = make([]F, len(v))
 		for colidx, midval := range v {
-			var up E
-			var left E
-			var right E
-			var down E
-			if idx == 0 {
-				up = edge
-			} else {
-				up = init[idx-1][colidx]
+			var arg [4]E
+			for aidx, dir := range [][]int{{-1, 0}, {0, -1}, {0, 1}, {1, 0}} {
+				otheridx := idx + dir[0]
+				othercol := colidx + dir[1]
+				if otheridx < 0 || otheridx >= len(init) || othercol < 0 || othercol >= len(v) {
+					arg[aidx] = edge
+				} else {
+					arg[aidx] = init[otheridx][othercol]
+				}
 			}
-			if colidx == 0 {
-				left = edge
-			} else {
-				left = v[colidx-1]
-			}
-			if colidx+1 >= len(v) {
-				right = edge
-			} else {
-				right = v[colidx+1]
-			}
-			if idx+1 >= len(init) {
-				down = edge
-			} else {
-				down = init[idx+1][colidx]
-			}
-			retval[idx][colidx] = combiner(up, left, midval, right, down)
+			retval[idx][colidx] = combiner(midval, arg)
 		}
 	}
 	return retval
@@ -80,19 +66,12 @@ func main() {
 	doneRegions := false
 	for !doneRegions {
 		doneRegions = true
-		regions = combineWithNbs(regions, 0, func(up, left, midval, right, down int) int {
+		regions = combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
 			nval := midval
-			if ((up & 0xFF) == (midval & 0xFF)) && up > nval {
-				nval = up
-			}
-			if ((left & 0xFF) == (midval & 0xFF)) && left > nval {
-				nval = left
-			}
-			if ((right & 0xFF) == (midval & 0xFF)) && right > nval {
-				nval = right
-			}
-			if ((down & 0xFF) == (midval & 0xFF)) && down > nval {
-				nval = down
+			for _, nb := range nbs {
+				if ((nb & 0xFF) == (midval & 0xFF)) && nb > nval {
+					nval = nb
+				}
 			}
 			if nval != midval {
 				doneRegions = false
@@ -111,20 +90,13 @@ func main() {
 	for rgnum := range regionmap {
 		area := 0
 		perimeter := 0
-		combineWithNbs(regions, 0, func(up, left, midval, right, down int) int {
+		combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
 			if midval == rgnum {
 				area += 1
-				if up != midval {
-					perimeter += 1
-				}
-				if down != midval {
-					perimeter += 1
-				}
-				if left != midval {
-					perimeter += 1
-				}
-				if right != midval {
-					perimeter += 1
+				for _, nb := range nbs {
+					if nb != midval {
+						perimeter += 1
+					}
 				}
 			}
 			return 0
@@ -136,38 +108,28 @@ func main() {
 
 	total = 0
 	for rgnum := range regionmap {
-		edgeDetect := combineWithNbs(regions, 0, func(up, left, midval, right, down int) int {
+		edgeDetect := combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
 			if midval != rgnum {
 				return 0
 			}
 			nval := 0
-			if up != midval {
-				nval += 1
-			}
-			if left != midval {
-				nval += 2
-			}
-			if right != midval {
-				nval += 4
-			}
-			if down != midval {
-				nval += 8
+			factor := 1
+			for _, nb := range nbs {
+				if nb != midval {
+					nval += factor
+				}
+				factor *= 2
 			}
 			return nval
 		})
 		nedges := 0
-		combineWithNbs(edgeDetect, 0, func(up, left, midval, right, down int) int {
-			if (midval&1) > 0 && (left&1) == 0 {
-				nedges += 1
-			}
-			if (midval&8) > 0 && (left&8) == 0 {
-				nedges += 1
-			}
-			if (midval&2) > 0 && (up&2) == 0 {
-				nedges += 1
-			}
-			if (midval&4) > 0 && (up&4) == 0 {
-				nedges += 1
+		combineWithNbs(edgeDetect, 0, func(midval int, nbs [4]int) int {
+			factor := 1
+			for idx := range nbs {
+				if (midval&factor) > 0 && (nbs[idx^1]&factor == 0) {
+					nedges += 1
+				}
+				factor *= 2
 			}
 			return 0
 		})
