@@ -26,6 +26,7 @@ func parseProblem(ptext string) [6]int {
 	return retval
 }
 
+// admittedly, this has the advantage of having already done both parts in python
 func solve1(ax, ay, bx, by, px, py int) int {
 	detcoeff := ax*by - ay*bx
 	detwob := ax*py - ay*px
