@@ -6,7 +6,9 @@ import itertools
 
 # convenience to change defaults
 def convolve(input, weights, output=None, mode="constant", cval=0, origin=0):
-    return scipy.ndimage.convolve(input, weights, output=output, mode=mode, cval=cval, origin=0)
+    return scipy.ndimage.convolve(
+        input, weights, output=output, mode=mode, cval=cval, origin=origin
+    )
 
 
 def neighbors(shape, loc):
