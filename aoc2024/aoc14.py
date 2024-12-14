@@ -28,7 +28,8 @@ for line in data:
         quad = 4
     quads[quad] += 1
 
-print("Part 1:", quads[1] * quads[2] * quads[3] * quads[4])
+print("Part 1:", quads[1], quads[2], quads[3], quads[4])
+print("Part 1:", quads[1] * quads[2] * quads[3] * quads[4], flush=True)
 
 
 class FoundTree(Exception):
