@@ -56,7 +56,7 @@ total = 0
 for loc, thing in mymap.items():
     if thing == "O":
         total += 100 * int(loc.real) + int(loc.imag)
-print(total)
+print("Part 1:", total)
 
 
 rspot = None
@@ -138,4 +138,4 @@ total = 0
 for loc, thing in mymap.items():
     if thing == "[":
         total += 100 * int(loc.real) + int(loc.imag)
-print(total)
+print("Part 2:", total)
