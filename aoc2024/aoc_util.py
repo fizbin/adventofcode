@@ -131,14 +131,15 @@ def astar(
             return [(n, 1) for n in neighborf(spot)]
 
         neighbor_distf = default_neighbor_dist
-    visited: Set[XS] = set()
-    workq: List[Tuple[int, int, Tuple, XS]]
-    workq = [(0, 0, (spot, ()), spot) for spot in sorted(starts)]
+    pushed: dict[XS, int] = {st: 0 for st in starts}
+    workq: List[Tuple[int, int, str, Tuple, XS]]
+    workq = [(0, 0, "", (spot, ()), spot) for spot in sorted(starts)]
     while workq:
-        (_, cost_so_far, path_tup, pos) = heapq.heappop(workq)
-        if pos in visited:
-            continue
-        visited.add(pos)
+        try:
+            (_, cost_so_far, _s, path_tup, pos) = heapq.heappop(workq)
+        except TypeError:
+            print(workq)
+            raise
         if goalf(pos):
             path = []
             while len(path_tup) == 2:
@@ -148,17 +149,19 @@ def astar(
             path.reverse()
             return (cost_so_far, path)
         for next_spot, dist in neighbor_distf(pos):
-            if next_spot not in visited:
+            if next_spot not in pushed or pushed[next_spot] > cost_so_far + dist:
                 estimate = estimatef(next_spot)
                 heapq.heappush(
                     workq,
                     (
                         cost_so_far + estimate + dist,
                         cost_so_far + dist,
+                        str(next_spot),
                         (next_spot, path_tup),
                         next_spot,
                     ),
                 )
+                pushed[next_spot] = cost_so_far + dist
     return None
 
 
