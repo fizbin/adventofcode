@@ -1,10 +1,5 @@
 from aoc_util import get_data
-import aoc_util
-import heapq
 import re
-import copy
-import itertools
-import functools
 
 data = get_data(17)
 
