@@ -95,9 +95,10 @@ def runprog(aval):
 
 def part2():
     # By inspection of the program, the Nth number output
-    # can only depend on the bottom 7+3*n bits of A
+    # can only depend on the bottom 7+3*n bits of A, and does
+    # NOT depend on the bottom 3*(n-1) bits
     # (that is, first number output depends on bottom 10 bits,
-    # second number on bottom 13 bits, etc.)
+    # second number on bottom 13 bits except for the bottom 3, etc.)
     #
     # Therefore, if we know a value for A has the first "k"
     # output numbers correct, we trust the bottom 3*k bits and
