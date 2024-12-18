@@ -55,9 +55,9 @@ executables:
   aoc13: { "main": "aoc13.hs", "source-dirs": "." }
   aoc14: { "main": "aoc14.hs", "source-dirs": "." }
   aoc15: { "main": "aoc15.hs", "source-dirs": "." }
-  aoc16: { "main": "aoc16.hs", "source-dirs": "." }
+  aoc16: { "main": "aoc16.hs", "source-dirs": ".", dependencies: ["aoc2024"]}
   aoc17: { "main": "aoc17.hs", "source-dirs": "." }
-  aoc18: { "main": "aoc18.hs", "source-dirs": "." }
+  aoc18: { "main": "aoc18.hs", "source-dirs": ".", dependencies: ["aoc2024"] }
   aoc19: { "main": "aoc19.hs", "source-dirs": "." }
   aoc20: { "main": "aoc20.hs", "source-dirs": "." }
   aoc21: { "main": "aoc21.hs", "source-dirs": "." }

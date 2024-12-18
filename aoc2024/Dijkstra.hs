@@ -55,7 +55,6 @@ dijkstra' txn iState = dijkstraGen' txn iState 0 (+) (const 0)
 aStar' :: (Ord state) => (state -> [(state, Int)]) -> state -> (state -> Int) -> (state -> Bool) -> Maybe (state, Int)
 aStar' txn iState = dijkstraGen' txn iState 0 (+)
 
-
 dijkstraGenN ::
   (Ord cost, Ord state) =>
   (state -> [(state, cost)]) ->
