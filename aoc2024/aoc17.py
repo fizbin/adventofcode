@@ -122,7 +122,7 @@ def part2():
         if not navals:
             break
         avals = sorted(navals)
-        correct +=1
+        correct += 1
         # print("DBG: ", best[:correct+1], correct, len(avals), (min(avals), max(avals)), 8**aexp)
         # if correct == 7:
         #     print("avals: ", avals[:10])
