@@ -33,6 +33,11 @@ when:
         ]
     else:
       ghc-options: ["-Wall", "-O2", "-rtsopts"]
+library:
+  source-dirs:
+    - .
+  exposed-modules:
+    - Dijkstra
 executables:
   aoc1: { "main": "aoc1.hs", "source-dirs": "." }
   aoc2: { "main": "aoc2.hs", "source-dirs": "." }
