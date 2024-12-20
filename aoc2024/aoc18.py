@@ -18,7 +18,8 @@ def get_neighbors(spot):
     nbs = [(myx - 1, myy), (myx, myy - 1), (myx, myy + 1), (myx + 1, myy)]
     return [s for s in nbs if mymap.get(s, "$") == "."]
 
-print("Part 1: ", end='')
+
+print("Part 1: ", end="")
 print(aoc_util.astar(start=(0, 0), goalf=lambda t: t == (70, 70), neighborf=get_neighbors)[0])
 
 
@@ -47,5 +48,5 @@ while hival - lowval > 1:
     else:
         hival = midval
 
-print("Part 2: ", end='')
+print("Part 2: ", end="")
 print(data[lowval])

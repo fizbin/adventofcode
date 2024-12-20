@@ -15,6 +15,7 @@ for pat in pat_targets.splitlines():
 
 print("Part 1:", len(good_pats))
 
+
 def mk_finder():
     @functools.cache
     def find_combos(tgt: str):
@@ -23,9 +24,11 @@ def mk_finder():
         total = 0
         for towel in towels:
             if tgt.startswith(towel):
-                total += find_combos(tgt[len(towel):])
+                total += find_combos(tgt[len(towel) :])
         return total
+
     return find_combos
+
 
 gtot = 0
 for good in good_pats:
