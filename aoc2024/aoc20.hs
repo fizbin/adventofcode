@@ -2,7 +2,6 @@ import Control.Arrow (Arrow (second))
 import Control.Monad (guard)
 import Data.Map (Map, (!))
 import Data.Map qualified as M
-import Data.Set qualified as S
 import Dijkstra qualified
 import System.Environment (getArgs)
 

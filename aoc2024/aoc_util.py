@@ -182,3 +182,22 @@ def numpy_shift(array, shiftsz, axis, fill):
                     filltup[axis] = target
                     foo[tuple(filltup)] = fill
     return foo
+
+
+def extended_gcd(x: int, y: int) -> int:
+    "returns (gcd, m, n) such that mx + ny = gcd"
+    if x < 0:
+        (g, m, n) = extended_gcd(-x, y)
+        return (g, -m, n)
+    if y < 0:
+        (g, m, n) = extended_gcd(x, -y)
+        return (g, m, -n)
+    if x < y:
+        (g, m, n) = extended_gcd(y, x)
+        return (g, n, m)
+    if y == 0:
+        return (x, 1, 0)
+    (quot, rem) = divmod(x, y)
+    (g, m, n) = extended_gcd(y, rem)
+    # g = m*y + n*(x - y*quot)
+    return (g, n, m - n * quot)
