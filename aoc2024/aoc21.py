@@ -22,16 +22,6 @@ for rowidx, row in enumerate(dir_map_str.splitlines()):
             dir_pad_rev[ch] = (rowidx, colidx)
 
 
-def mypermute(athing, bthing):
-    if athing == "":
-        return [bthing]
-    if bthing == "":
-        return [athing]
-    stuff1 = [athing[0] + x for x in mypermute(athing[1:], bthing)]
-    stuff2 = [bthing[0] + x for x in mypermute(athing, bthing[1:])]
-    return stuff1 + stuff2
-
-
 def get_numpad_seq_len(code, nintermed=2):
     pspot = "A"
     dist = 0
@@ -55,25 +45,16 @@ def get_shortest_numpad1_len(code: str, pcode: str, nintermed=2) -> int:
         ydir = "<"
     else:
         ydir = ">"
-    poss = mypermute(xdir * axoff, ydir * ayoff)
     allowed = []
-    for attempt in poss:
-        spot = prev_pos
-        for ch in attempt:
-            if ch == "<":
-                spot = (spot[0], spot[1] - 1)
-            if ch == ">":
-                spot = (spot[0], spot[1] + 1)
-            if ch == "v":
-                spot = (spot[0] + 1, spot[1])
-            if ch == "^":
-                spot = (spot[0] - 1, spot[1])
-            if spot not in num_pad_map:
-                break
-        else:
-            allowed.append(attempt)
-    min_allowed = get_dirpad_seq_len(allowed[0] + "A", nintermed)
-    for x in allowed[1:]:
+    if prev_pos[1] == 0 and new_pos[0] == 3:
+        allowed = [ydir * ayoff + xdir * axoff]
+    elif new_pos[1] == 0 and prev_pos[0] == 3:
+        allowed = [xdir * axoff + ydir * ayoff]
+    else:
+        allowed = sorted(set([ydir * ayoff + xdir * axoff, xdir * axoff + ydir * ayoff]))
+
+    min_allowed = 9999999999999999999999
+    for x in allowed:
         min_allowed = min(min_allowed, get_dirpad_seq_len(x + "A", nintermed))
     return min_allowed
 
@@ -104,25 +85,16 @@ def get_shortest_dirpad1_len(code: str, pcode: str, level: int) -> int:
         ydir = "<"
     else:
         ydir = ">"
-    poss = mypermute(xdir * axoff, ydir * ayoff)
     allowed = []
-    for attempt in poss:
-        spot = prev_pos
-        for ch in attempt:
-            if ch == "<":
-                spot = (spot[0], spot[1] - 1)
-            if ch == ">":
-                spot = (spot[0], spot[1] + 1)
-            if ch == "v":
-                spot = (spot[0] + 1, spot[1])
-            if ch == "^":
-                spot = (spot[0] - 1, spot[1])
-            if spot not in dir_pad_map:
-                break
-        else:
-            allowed.append(attempt)
-    min_allowed = get_dirpad_seq_len(allowed[0] + "A", level - 1)
-    for x in allowed[1:]:
+    if prev_pos[1] == 0 and new_pos[0] == 0:
+        allowed = [ydir * ayoff + xdir * axoff]
+    elif new_pos[1] == 0 and prev_pos[0] == 0:
+        allowed = [xdir * axoff + ydir * ayoff]
+    else:
+        allowed = sorted(set([ydir * ayoff + xdir * axoff, xdir * axoff + ydir * ayoff]))
+
+    min_allowed = 9999999999999999999999
+    for x in allowed:
         min_allowed = min(min_allowed, get_dirpad_seq_len(x + "A", level - 1))
     return min_allowed
 
