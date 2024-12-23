@@ -63,34 +63,67 @@ func runProg(regA, regB, regC int, prog []int) []int {
 }
 
 func mkQuine(prog []int) int {
-	ncorrect := 0
-	avals := []int{0}
-	for ncorrect < len(prog) {
-		navals := make([]int, 0)
-		trustModulus := 1 << (3 * ncorrect)
-		for idx, v := range avals {
-			avals[idx] = v % trustModulus
+	// Progam analysis:
+	// 2,4  regB = regA%8
+	// 1,5  regB ^= 5
+	// 7,5  regC = regA / (2**regB)
+	// 1,6  regB ^= 6
+	// 0,3  regA /= 8
+	// 4,3  regB ^= regC
+	// 5,5  output.append!(regb%8)
+	// 3,0  if (regA != 0) {jump 0}
+
+	// Therefore:
+	// The loop works from the low-order bits of regA
+	// regB and regC have no state to pass from loop iteration to loop iteration
+	// Only the bottom three bits of regB and regC are ever significant
+	// regB is fed from the bottom 3 bits of A each loop
+	// regC is fed from three bits of regA that are somewhere in the bottom 10 bits of regA
+	// (which three bits depends on the value of regB)
+	// output of a loop is uniquely determined by the bottom 10 bits of A at the start of the loop
+	// regA goes down by three bits each loop
+
+	// Conclusion: output[:n] depends on only the bottom (7 + 3*n) bits of the initial regA
+	// Therefore, we can find the bottom 10 bits to get the first output, and then work
+	// our way up three bits at a time to match every subsequent input.
+
+	avals := []int{}
+	// first get the possibilities for the bottom 10 bits
+	for aval := range 1024 {
+		out := runProg(aval, 0, 0, prog)
+		if out[0] == prog[0] {
+			avals = append(avals, aval)
 		}
-		slices.Sort(avals)
-		avals = slices.Compact(avals)
-		for _, abase := range avals {
-			for inc := range 1024 {
-				aval := (inc * trustModulus) + abase
+	}
+
+	// so we've gotten the first output number correct
+	ncorrect := 1
+
+	// now solve for three bits at a time, assuming that the bottom 3*ncorrect+7 are correct
+	for ncorrect < len(prog) {
+		newAvals := make([]int, 0, 8*len(avals))
+		stepSize := 1 << (3*ncorrect + 7)
+		for topThreeBits := range 8 {
+			for _, abase := range avals {
+				aval := (topThreeBits * stepSize) + abase
 				out := runProg(aval, 0, 0, prog)
+				if slices.Equal(out, prog) {
+					// This happens earlier than ncorrect == len(prog), so exit here
+					return aval
+				}
 				if len(out) > ncorrect && slices.Equal(out[:ncorrect+1], prog[:ncorrect+1]) {
-					if ncorrect+1 == len(prog) {
-						return aval
-					}
-					navals = append(navals, aval)
+					// We found three top bits to add on that give us one more correct answer
+					newAvals = append(newAvals, aval)
 				}
 			}
 		}
-		avals = navals
+		avals = newAvals
 		ncorrect += 1
 		if len(avals) == 0 {
 			log.Fatal("Out of possibilities")
 		}
 	}
+	log.Fatal("Overshot the program without hitting it")
 	return -1
 }
 
