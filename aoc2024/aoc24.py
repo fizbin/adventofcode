@@ -82,7 +82,7 @@ def do_flip(wireA, wireB):
     notify.setdefault(compute[wireB][2], []).append(wireB)
 
 
-def find_connected(seeds, levels=4):
+def find_connected(seeds, levels=6):
     working = set(seeds)
     accum = set(seeds)
     while levels > 0:
@@ -120,7 +120,7 @@ for i in range(45):
     xval = 1 << i
     something_to_see = False
     if attempt_add(xval, 0) != xval:
-        testrange = [x * (1 << (i - 2)) for x in range(32)]
+        testrange = [x * (1 << (i - 1)) for x in range(8)]
         flip = find_good_flip(
             testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i:02}"])
         )
@@ -128,7 +128,7 @@ for i in range(45):
         do_flip(*flip)
         flippers.update(flip)
     if attempt_add(0, xval) != xval:
-        testrange = [x * (1 << (i - 2)) for x in range(32)]
+        testrange = [x * (1 << (i - 1)) for x in range(8)]
         flip = find_good_flip(
             testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i:02}"])
         )
@@ -136,7 +136,7 @@ for i in range(45):
         do_flip(*flip)
         flippers.update(flip)
     if attempt_add(xval, xval) != 2 * xval:
-        testrange = [x * (1 << (i - 2)) for x in range(32)]
+        testrange = [x * (1 << (i - 1)) for x in range(16)]
         flip = find_good_flip(
             testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i+1:02}"])
         )
@@ -151,25 +151,10 @@ for i in range(45):
     xval = 1 << i
     something_to_see = False
     if attempt_add(xval, 0) != xval:
-        testrange = [x * (1 << (i - 1)) for x in range(8)]
-        flip = find_good_flip(
-            testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i:02}"])
-        )
-        print("FLIP:", flip)
-        do_flip(*flip)
+        print(f"Still bad", xval, 0, xval+0, attempt_add(xval, 0))
     if attempt_add(0, xval) != xval:
-        testrange = [x * (1 << (i - 1)) for x in range(8)]
-        flip = find_good_flip(
-            testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i:02}"])
-        )
-        print("FLIP:", flip)
-        do_flip(*flip)
+        print(f"Still bad", 0, xval, xval+0, attempt_add(0,xval))
     if attempt_add(xval, xval) != 2 * xval:
-        testrange = [x * (1 << (i - 1)) for x in range(16)]
-        flip = find_good_flip(
-            testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i+1:02}"])
-        )
-        print("FLIP:", flip)
-        do_flip(*flip)
+        print(f"Still bad", xval, xval, xval+xval, attempt_add(xval,xval))
 
 print("Part 2:", ",".join(sorted(flippers)))
