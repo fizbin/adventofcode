@@ -1,7 +1,9 @@
+from typing import Any, Sequence, TypeAlias
 from aoc_util import get_data_lines
 import aoc_util
 import heapq
 
+State: TypeAlias = tuple[complex, complex]
 data = get_data_lines(16)
 
 mymap = {}
@@ -15,8 +17,11 @@ for rowidx, row in enumerate(data):
         if ch == "E":
             endpos = rowidx + 1j * colidx
 
+assert start is not None, "No start found"
+assert endpos is not None, "No end found"
 
-def get_neighbors(state: tuple[complex, complex]):
+
+def get_neighbors(state: State) -> Sequence[tuple[State, int]]:
     (spot, mydir) = state
     retval = []
     if mymap.get(spot + mydir, "#") != "#":
@@ -25,15 +30,19 @@ def get_neighbors(state: tuple[complex, complex]):
     return retval
 
 
-(total, path) = aoc_util.astar(
+astar_ans = aoc_util.astar(
     start=(start, 1j), goalf=lambda s: mymap.get(s[0]) == "E", neighbor_distf=get_neighbors
 )
+assert astar_ans, "No part 1 path found!"
+(total, path) = astar_ans
 print("Part 1:", total)
 
 mydist = {}  # state -> lowest dist
 
-pushed = {}
-workq = [(0, 0, "", (spot, ()), spot) for spot in [(start, 1j)]]
+pushed: dict[State, int] = {}
+workq: list[tuple[int, int, str, tuple[State, Any], State]] = [
+    (0, 0, "", (spot, ()), spot) for spot in [(start, 1j)]
+]
 while workq:
     (_, cost_so_far, _s, path_tup, pos) = heapq.heappop(workq)
     if pos in mydist:
@@ -57,7 +66,7 @@ while workq:
             pushed[next_spot] = cost_so_far + dist
 
 
-def get_neighbors_backwards(state: tuple[complex, complex]):
+def get_neighbors_backwards(state: State):
     (spot, mydir) = state
     retval = []
     if mymap.get(spot - mydir, "#") != "#":

@@ -28,7 +28,7 @@ grid[:, :, 3] = np.roll(grid[:, :, 2], shift=1, axis=1)
 grid[:, :, 4] = np.roll(grid[:, :, 3], shift=1, axis=1)
 
 grand_max = 0
-max_bananas = {}
+max_bananas: dict[tuple[int, ...], int] = {}
 for buyer in range(data.size):
     my_bananas = {}
     for start in reversed(list(range(4, 2001))):

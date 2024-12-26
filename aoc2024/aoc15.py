@@ -8,12 +8,14 @@ import copy
 mymapspec, mymomves = get_data_paras(15)
 
 rspot = None
-mymap = {}
+mymap: dict[complex, str] = {}
 for xidx, row in enumerate(mymapspec.splitlines()):
     for yidx, ch in enumerate(row):
         mymap[xidx + 1j * yidx] = ch
         if ch == "@":
             rspot = xidx + 1j * yidx
+
+assert rspot is not None, "No robot spot found"
 
 
 def dumpmap():
@@ -74,6 +76,7 @@ for xidx, row in enumerate(mymapspec.splitlines()):
             mymap[xidx + 2j * yidx] = ch
             mymap[xidx + 2j * yidx + 1j] = "."
 
+assert rspot is not None, "No robot spot found in expanded grid"
 
 for move in "".join(mymomves.splitlines()):
     for where, what in mymap.items():

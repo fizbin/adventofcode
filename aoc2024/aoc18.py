@@ -20,7 +20,9 @@ def get_neighbors(spot):
 
 
 print("Part 1: ", end="")
-print(aoc_util.astar(start=(0, 0), goalf=lambda t: t == (70, 70), neighborf=get_neighbors)[0])
+astar_res = aoc_util.astar(start=(0, 0), goalf=lambda t: t == (70, 70), neighborf=get_neighbors)
+assert astar_res
+print(astar_res[0])
 
 
 def check_fallamt(n):

@@ -1,3 +1,4 @@
+from typing import Sequence
 from aoc_util import get_data_lines
 
 data = get_data_lines(11)
@@ -14,7 +15,7 @@ def advance(stone):
 
 total = 0
 for stonestr in data[0].split():
-    stones = (int(stonestr),)
+    stones: Sequence[int] = (int(stonestr),)
     for _ in range(25):
         nstones = []
         for stone in stones:

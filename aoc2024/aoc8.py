@@ -3,7 +3,7 @@ import itertools
 
 data = get_data_lines(8)
 
-antennas = {}
+antennas: dict[str, list[tuple[int, int]]] = {}
 width = len(data[0])
 height = len(data)
 for idx, line in enumerate(data):

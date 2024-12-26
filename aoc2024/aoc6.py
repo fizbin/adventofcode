@@ -19,7 +19,7 @@ def check_obstacle(objstacle_spot):
     "Subroutine for part 2"
     statehist = set()
     guardspot = guardstart
-    guarddir = -1
+    guarddir = -1 + 0j
     if cmap[objstacle_spot] != ".":
         return False
     try:
@@ -38,7 +38,7 @@ def check_obstacle(objstacle_spot):
 
 # part 1
 
-guarddir = -1
+guarddir = -1 + 0j
 guardspot = guardstart
 guardhist = {guardspot}
 while guardspot in cmap:

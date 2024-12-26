@@ -8,18 +8,21 @@ connections = set(data)
 nodes = set(y.split("-")[0] for y in data)
 tnodes = set(y for y in nodes if y[0] == "t")
 
-congr = {}
+congr: dict[str, list[str]] = {}
 for con in connections:
     (von, zu) = sorted(con.split("-"), key=lambda s: (s[0] != "t", s))
     congr[von] = sorted(congr.get(von, []) + [zu], key=lambda s: (s[0] != "t", s))
 
 total = 0
+some_triple = None
 for tnode in tnodes:
-    rest = congr.get(tnode, [])
+    rest: list[str] = congr.get(tnode, [])
     for a, b in itertools.combinations(rest, 2):
         if b in congr.get(a, []):
             total += 1
+            some_triple = {tnode, a, b}
 
+assert some_triple is not None
 print("Part 1:", total)
 
 
@@ -33,8 +36,8 @@ def is_fully_connected(candidates):
     return True
 
 
-biggest_sofar = None
-big_size = 0
+biggest_sofar = tuple(some_triple)
+big_size = 3
 for node, downstream in sorted(congr.items(), key=lambda s: (s[0][0] != "t", s[0])):
     for node2 in downstream:
         candidates = set(downstream) & set(congr.get(node2, []))
@@ -48,9 +51,11 @@ for node, downstream in sorted(congr.items(), key=lambda s: (s[0][0] != "t", s[0
                             biggest_sofar = candidates_
                             big_size = len(biggest_sofar)
                             # print("N", big_size)
-                        found_s = True
+                        # this break/else-continue on the for/break combination effectively
+                        # makes the inner "break" a double-level break
                         break
-                if found_s:
-                    break
+                else:
+                    continue
+                break
 
 print("Part 2:", ",".join(sorted(biggest_sofar)))

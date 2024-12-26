@@ -15,7 +15,9 @@ for rec in prizes:
         r"Button A: X\+(\d+), Y\+(\d+)\s*Button B: X\+(\d+), Y\+(\d+)\s*Prize: X=(\d+), Y=(\d+)",
         rec,
     )
-    parsed.append(tuple(map(lambda x: int(m.group(x)), [1, 2, 3, 4, 5, 6])))
+    assert m is not None, f"Bad prize text {rec!r}"
+    num_strs = m.groups()[1:]
+    parsed.append(tuple(map(int, num_strs)))
 
 for parse in parsed:
     (ax, ay, bx, by, px, py) = parse

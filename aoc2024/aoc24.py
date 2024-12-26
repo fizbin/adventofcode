@@ -28,8 +28,8 @@ for line in gates.splitlines():
         compute[outW] = (operator.xor, inA, inB)
 
 working = set()
-for i in init_vals:
-    working.update(notify.get(i, []))
+for wire in init_vals:
+    working.update(notify.get(wire, []))
 
 vals = copy.copy(init_vals)
 while working:
@@ -127,22 +127,6 @@ for i in range(45):
         # print("FLIP:", flip)
         do_flip(*flip)
         flippers.update(flip)
-    if attempt_add(0, xval) != xval:
-        testrange = [x * (1 << (i - 1)) for x in range(8)]
-        flip = find_good_flip(
-            testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i:02}"])
-        )
-        # print("FLIP:", flip)
-        do_flip(*flip)
-        flippers.update(flip)
-    if attempt_add(xval, xval) != 2 * xval:
-        testrange = [x * (1 << (i - 1)) for x in range(16)]
-        flip = find_good_flip(
-            testrange, testrange, find_connected([f"x{i:02}", f"y{i:02}", f"z{i+1:02}"])
-        )
-        # print("FLIP:", flip)
-        do_flip(*flip)
-        flippers.update(flip)
 
 
 # print("RETEST!")
@@ -151,10 +135,10 @@ for i in range(45):
     xval = 1 << i
     something_to_see = False
     if attempt_add(xval, 0) != xval:
-        print(f"Still bad", xval, 0, xval+0, attempt_add(xval, 0))
+        print(f"Still bad", xval, 0, xval + 0, attempt_add(xval, 0))
     if attempt_add(0, xval) != xval:
-        print(f"Still bad", 0, xval, xval+0, attempt_add(0,xval))
+        print(f"Still bad", 0, xval, xval + 0, attempt_add(0, xval))
     if attempt_add(xval, xval) != 2 * xval:
-        print(f"Still bad", xval, xval, xval+xval, attempt_add(xval,xval))
+        print(f"Still bad", xval, xval, xval + xval, attempt_add(xval, xval))
 
 print("Part 2:", ",".join(sorted(flippers)))

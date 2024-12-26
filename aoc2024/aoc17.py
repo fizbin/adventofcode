@@ -1,42 +1,55 @@
-from aoc_util import get_data
+import dataclasses
+from typing import Union
 import re
+
+from aoc_util import get_data
+
+
+@dataclasses.dataclass
+class Machine:
+    A: int
+    B: int
+    C: int
+    o: list[int]
+    I: int
+
 
 data = get_data(17)
 
-output = []
+output: list[int] = []
 
 
 def adv(st, arg):
-    st["A"] = st["A"] // (2**arg)
+    st.A = st.A // (2**arg)
 
 
 def bst(st, arg):
-    st["B"] = arg % 8
+    st.B = arg % 8
 
 
 def bxl(st, arg):
-    st["B"] ^= arg
+    st.B ^= arg
 
 
 def jnz(st, arg):
-    if st["A"]:
-        st["I"] = arg - 2
+    if st.A:
+        st.I = arg - 2
 
 
 def bxc(st, arg):
-    st["B"] = st["B"] ^ st["C"]
+    st.B = st.B ^ st.C
 
 
 def out(st, arg):
-    st["o"].append(arg % 8)
+    st.o.append(arg % 8)
 
 
 def bdv(st, arg):
-    st["B"] = st["A"] // (2**arg)
+    st.B = st.A // (2**arg)
 
 
 def cdv(st, arg):
-    st["C"] = st["A"] // (2**arg)
+    st.C = st.A // (2**arg)
 
 
 opcodes = {
@@ -51,46 +64,47 @@ opcodes = {
 }
 
 m = re.match(r"Register A: (\d+)\s*Register B: (\d+)\s*Register C: (\d+)\s*Program: ([,\d]+)", data)
-st = {"A": int(m.group(1)), "B": int(m.group(2)), "C": int(m.group(3)), "o": [], "I": 0}
+assert m, f"Malformed input data: {data!r}"
+st = Machine(A=int(m.group(1)), B=int(m.group(2)), C=int(m.group(3)), o=[], I=0)
 prog = [int(x) for x in m.group(4).split(",")]
 
-while 0 <= st["I"] < len(prog) - 1:
-    instr = prog[st["I"]]
-    argv = prog[st["I"] + 1]
+while 0 <= st.I < len(prog) - 1:
+    instr = prog[st.I]
+    argv = prog[st.I + 1]
     if opcodes[instr][0] and argv >= 4:
         if argv == 4:
-            argv = st["A"]
+            argv = st.A
         elif argv == 5:
             # print("DBG2", st['I'])
-            argv = st["B"]
+            argv = st.B
         elif argv == 6:
-            argv = st["C"]
+            argv = st.C
         else:
             assert False
     opcodes[instr][1](st, argv)
-    st["I"] += 2
+    st.I += 2
     # print("DBG", str(st))
 
-print("Part 1:", ",".join(str(y) for y in st["o"]))
+print("Part 1:", ",".join(str(y) for y in st.o))
 
 
-def runprog(aval):
-    st = {"A": aval, "B": 0, "C": 0, "o": [], "I": 0}
-    while 0 <= st["I"] < len(prog) - 1:
-        instr = prog[st["I"]]
-        argv = prog[st["I"] + 1]
+def runprog(aval: int) -> list[int]:
+    st = Machine(A=aval, B=0, C=0, o=[], I=0)
+    while 0 <= st.I < len(prog) - 1:
+        instr = prog[st.I]
+        argv = prog[st.I + 1]
         if opcodes[instr][0] and argv >= 4:
             if argv == 4:
-                argv = st["A"]
+                argv = st.A
             elif argv == 5:
-                argv = st["B"]
+                argv = st.B
             elif argv == 6:
-                argv = st["C"]
+                argv = st.C
             else:
                 assert False
         opcodes[instr][1](st, argv)
-        st["I"] += 2
-    return st["o"]
+        st.I += 2
+    return st.o
 
 
 def part2():
@@ -104,7 +118,7 @@ def part2():
     # output numbers correct, we trust the bottom 3*k bits and
     # play with the ten bits above that to find our next crop of
     # candidates
-    progout = []
+    progout: list[int] = []
     avals = [0]
     correct = 0
     while progout != prog:

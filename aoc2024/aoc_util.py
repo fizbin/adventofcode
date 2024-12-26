@@ -1,7 +1,18 @@
 import itertools
 import re
 import sys
-from typing import List, Callable, Optional, Sequence, Set, Tuple, TypeVar, TYPE_CHECKING
+from typing import (
+    List,
+    Callable,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TypeVar,
+    Iterable,
+    TYPE_CHECKING,
+    Union,
+)
 import heapq
 
 import numpy as np
@@ -43,9 +54,9 @@ def chargrid(in_string: str) -> List[List[str]]:
     return [list(line) for line in in_string.splitlines()]
 
 
-def get_rotations(ndims, reflections=False, dtype=None):
+def get_rotations(ndims, reflections=False, dtype=None) -> list[np.ndarray]:
     idmat = np.identity(ndims, dtype=dtype)
-    retval = [idmat]
+    retval: list[np.ndarray] = [idmat]
     for ax1, ax2 in itertools.combinations(range(ndims), 2):
         newval = np.copy(idmat)
         newval[ax1] = idmat[ax2]
@@ -63,7 +74,7 @@ def get_rotations(ndims, reflections=False, dtype=None):
         nmat = np.copy(idmat)
         nmat[0] = -idmat[0]
         retval.append(nmat)
-    working = []
+    working: list[np.ndarray] = []
     while len(working) < len(retval):
         working = list(retval)
         for mat1, mat2 in itertools.combinations_with_replacement(working, 2):
@@ -82,8 +93,8 @@ def chunked(n, iterable, enforce_size=True):
             assert not enforce_size, f"{len(rettup)} left over in iteration"
 
 
-def rolling(n, iterable):
-    yieldval = ()
+def rolling(n: int, iterable: Iterable[X]):
+    yieldval: tuple[X, ...] = ()
     for thing in iterable:
         if len(yieldval) < n:
             yieldval = yieldval + (thing,)
@@ -126,6 +137,7 @@ def astar(
         assert start is not None  # mypy
         starts = [start]
     if neighbor_distf is None:
+        assert neighborf is not None
 
         def default_neighbor_dist(spot):
             return [(n, 1) for n in neighborf(spot)]
@@ -165,11 +177,11 @@ def astar(
     return None
 
 
-def numpy_shift(array, shiftsz, axis, fill):
+def numpy_shift(array, shiftsz, axis: int, fill):
     foo = np.roll(array, shift=shiftsz, axis=axis)
     if shiftsz != 0:
         maxidx = np.shape(foo)[axis]
-        filltup = [slice(None)] * len(np.shape(foo))
+        filltup: list[Union[slice, int]] = [slice(None)] * len(np.shape(foo))
         if abs(shiftsz) >= maxidx:
             foo[tuple(filltup)] = fill
         else:
@@ -184,7 +196,7 @@ def numpy_shift(array, shiftsz, axis, fill):
     return foo
 
 
-def extended_gcd(x: int, y: int) -> int:
+def extended_gcd(x: int, y: int) -> tuple[int, int, int]:
     "returns (gcd, m, n) such that mx + ny = gcd"
     if x < 0:
         (g, m, n) = extended_gcd(-x, y)
