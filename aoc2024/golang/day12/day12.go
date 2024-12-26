@@ -29,6 +29,11 @@ func combineWithNbs[S ~[][]E, E any, F any](init S, edge E, combiner func(E, [4]
 	return retval
 }
 
+type edgeDetectState struct {
+	regionNum int
+	nbSame    [4]bool
+}
+
 func main() {
 	argsWithoutProg := os.Args[1:]
 	var infile string
@@ -69,7 +74,7 @@ func main() {
 		regions = combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
 			nval := midval
 			for _, nb := range nbs {
-				if ((nb & 0xFF) == (midval & 0xFF)) && nb > nval {
+				if ((nb & 0xFF) == (midval & 0xFF)) && nb < nval {
 					nval = nb
 				}
 			}
@@ -87,53 +92,55 @@ func main() {
 	}
 	total := 0
 	regionareas := make(map[int]int)
-	for rgnum := range regionmap {
-		area := 0
+	regionperimeters := make(map[int]int)
+	areaPerimeterGrid := combineWithNbs(regions, 0, func(midval int, nbs [4]int) [2]int {
 		perimeter := 0
-		combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
-			if midval == rgnum {
-				area += 1
-				for _, nb := range nbs {
-					if nb != midval {
-						perimeter += 1
-					}
-				}
+		for _, nb := range nbs {
+			if nb != midval {
+				perimeter += 1
 			}
-			return 0
-		})
-		regionareas[rgnum] = area
-		total += area * perimeter
+		}
+		return [2]int{midval, perimeter}
+	})
+	for _, row := range areaPerimeterGrid {
+		for _, val := range row {
+			regionareas[val[0]] += 1
+			regionperimeters[val[0]] += val[1]
+		}
+	}
+	for rgnum, area := range regionareas {
+		total += area * regionperimeters[rgnum]
 	}
 	fmt.Println("Part 1:", total)
 
+	edgeDetectGrid := combineWithNbs(regions, 0, func(midval int, nbs [4]int) edgeDetectState {
+		var sames [4]bool
+		for idx := range sames {
+			sames[idx] = (midval == nbs[idx])
+		}
+		return edgeDetectState{midval, sames}
+	})
+	edgeGrid := combineWithNbs(edgeDetectGrid, edgeDetectState{}, func(midval edgeDetectState, nbs [4]edgeDetectState) [2]int {
+		edgeEnds := 0
+		for idx := range nbs {
+			oidx := 1 ^ idx // horiz if idx is vert, vert if idx is horiz
+			if !(midval.nbSame[idx]) {
+				if (!midval.nbSame[oidx]) || nbs[oidx].nbSame[idx] {
+					edgeEnds += 1
+				}
+			}
+		}
+		return [2]int{midval.regionNum, edgeEnds}
+	})
+	regionEdges := make(map[int]int)
+	for _, row := range edgeGrid {
+		for _, val := range row {
+			regionEdges[val[0]] += val[1]
+		}
+	}
 	total = 0
-	for rgnum := range regionmap {
-		edgeDetect := combineWithNbs(regions, 0, func(midval int, nbs [4]int) int {
-			if midval != rgnum {
-				return 0
-			}
-			nval := 0
-			factor := 1
-			for _, nb := range nbs {
-				if nb != midval {
-					nval += factor
-				}
-				factor *= 2
-			}
-			return nval
-		})
-		nedges := 0
-		combineWithNbs(edgeDetect, 0, func(midval int, nbs [4]int) int {
-			factor := 1
-			for idx := range nbs {
-				if (midval&factor) > 0 && (nbs[idx^1]&factor == 0) {
-					nedges += 1
-				}
-				factor *= 2
-			}
-			return 0
-		})
-		total += nedges * regionareas[rgnum]
+	for rgnum, area := range regionareas {
+		total += area * regionEdges[rgnum]
 	}
 	fmt.Println("Part 2:", total)
 }
