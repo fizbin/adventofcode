@@ -35,30 +35,27 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	total1 := uint64(0)
-	total2 := 0
-	bananaStrategyMap := make(map[[4]int]int)
+	total2 := uint16(0)
+	vndrNum := uint16(0)
+	bananaTotal := make([]uint16, 1<<20)
+	vndrWritten := make([]uint16, 1<<20)
 	for scanner.Scan() {
-		myBananas := make(map[[4]int]int)
+		vndrNum++
 		n0, _ := strconv.ParseUint(scanner.Text(), 10, 64)
 		n := n0
-		hist := make([]int, 0, 2002)
-		prev := int(n % 10)
+		hist := uint32(0)
+		prev := uint16(n % 10)
 		for range 2000 {
 			n = advance(n)
-			hist = append(hist, int(n%10)-prev)
-			prev = int(n % 10)
-			if len(hist) > 3 {
-				histKey := ([4]int)(hist[0:4])
-				if _, ok := myBananas[histKey]; !ok {
-					myBananas[histKey] = prev
+			hist = ((hist & ((1 << 15) - 1)) << 5) | uint32(10+uint16(n%10)-prev)
+			prev = uint16(n % 10)
+			if hist >= (1 << 15) {
+				if vndrWritten[hist] < vndrNum {
+					nval := bananaTotal[hist] + prev
+					total2 = max(total2, nval)
+					bananaTotal[hist] = nval
+					vndrWritten[hist] = vndrNum
 				}
-				hist = hist[1:]
-			}
-		}
-		for k, v := range myBananas {
-			bananaStrategyMap[k] += v
-			if bananaStrategyMap[k] > total2 {
-				total2 = bananaStrategyMap[k]
 			}
 		}
 		total1 += n

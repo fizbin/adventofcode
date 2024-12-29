@@ -2,13 +2,16 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"maps"
 	"os"
+	"runtime/pprof"
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -23,8 +26,19 @@ type computeSpec struct {
 	w2 string
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
-	argsWithoutProg := os.Args[1:]
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+	argsWithoutProg := flag.Args()
 	var infile string
 	if len(argsWithoutProg) == 0 {
 		infile = "../aoc24.in"
@@ -67,7 +81,7 @@ func main() {
 		computeMap[key] = computeSpec{op: op, w1: flds[0], w2: flds[2]}
 	}
 
-	fmt.Printf("Part 1: %v\n", doCompute(initMap, computeMap))
+	fmt.Printf("Part 1: %v\n", doCompute(initMap, makeMachine(computeMap), "", ""))
 	goodSwaps := swapFixAdd(computeMap)
 	// fmt.Println("DBG:", goodSwaps)
 	part2 := make([]string, 0, 2*len(goodSwaps))
@@ -101,9 +115,18 @@ func evalOperation(spec computeSpec, values map[string]int8) int8 {
 	return -1
 }
 
-func doCompute(initMap map[string]int8, computeMap map[string]computeSpec) uint64 {
+type machine struct {
+	computeMap     map[string]computeSpec
+	notifyMap      map[string][]string
+	zSpec          []string
+	xWires, yWires []string
+}
+
+func makeMachine(computeMap map[string]computeSpec) machine {
 	zSpec := make([]string, 0, 45)
 	notifyMap := make(map[string][]string)
+	xWires := make([]string, 0)
+	yWires := make([]string, 0)
 	for key, val := range computeMap {
 		if strings.HasPrefix(key, "z") {
 			zSpec = append(zSpec, key)
@@ -118,24 +141,60 @@ func doCompute(initMap map[string]int8, computeMap map[string]computeSpec) uint6
 		} else {
 			notifyMap[val.w2] = []string{key}
 		}
+		if strings.HasPrefix(val.w1, "x") {
+			xWires = append(xWires, val.w1)
+		}
+		if strings.HasPrefix(val.w2, "x") {
+			xWires = append(xWires, val.w2)
+		}
+		if strings.HasPrefix(val.w1, "y") {
+			yWires = append(yWires, val.w1)
+		}
+		if strings.HasPrefix(val.w2, "y") {
+			yWires = append(yWires, val.w2)
+		}
 	}
 	slices.Sort(zSpec)
+	slices.Sort(xWires)
+	xWires = slices.Compact(xWires)
+	slices.Sort(yWires)
+	yWires = slices.Compact(yWires)
+	return machine{computeMap: computeMap, notifyMap: notifyMap, zSpec: zSpec, xWires: xWires, yWires: yWires}
+}
+
+func doCompute(initMap map[string]int8, mach machine, swap1, swap2 string) uint64 {
+	zSpec := mach.zSpec
+	notifyMap := mach.notifyMap
+	computeMap := mach.computeMap
+	doswap := func(s string) string {
+		if s == swap1 {
+			return swap2
+		}
+		if s == swap2 {
+			return swap1
+		}
+		return s
+	}
 	q := make([]string, 0, len(initMap)+len(computeMap))
 	for key := range initMap {
 		if notList, ok := notifyMap[key]; ok {
-			q = append(q, notList...)
+			for _, n := range notList {
+				q = append(q, doswap(n))
+			}
 		}
 	}
 	var valueMap map[string]int8 = maps.Clone(initMap)
 	for len(q) > 0 {
 		w := q[0]
 		q = q[1:]
-		if spec, ok := computeMap[w]; ok {
+		if spec, ok := computeMap[doswap(w)]; ok {
 			if _, ok := valueMap[w]; !ok {
 				newVal := evalOperation(spec, valueMap)
 				if newVal >= 0 {
 					if notList, ok := notifyMap[w]; ok {
-						q = append(q, notList...)
+						for _, n := range notList {
+							q = append(q, doswap(n))
+						}
 					}
 					valueMap[w] = newVal
 				}
@@ -170,38 +229,18 @@ func findUpstream(computeMap map[string]computeSpec, start string, maxdepth int)
 }
 
 // returns the bits that are wrong
-func tryAddition(computeMap map[string]computeSpec, a, b uint64) uint64 {
-	xWires := make([]string, 0)
-	yWires := make([]string, 0)
-	for _, spec := range computeMap {
-		if strings.HasPrefix(spec.w1, "x") {
-			xWires = append(xWires, spec.w1)
-		}
-		if strings.HasPrefix(spec.w2, "x") {
-			xWires = append(xWires, spec.w2)
-		}
-		if strings.HasPrefix(spec.w1, "y") {
-			yWires = append(yWires, spec.w1)
-		}
-		if strings.HasPrefix(spec.w2, "y") {
-			yWires = append(yWires, spec.w2)
-		}
-	}
-	slices.Sort(xWires)
-	xWires = slices.Compact(xWires)
-	slices.Sort(yWires)
-	yWires = slices.Compact(yWires)
+func tryAddition(mach machine, a, b uint64, swap1, swap2 string) uint64 {
 	initMap := make(map[string]int8)
 	a0, b0 := a, b
-	for _, xWire := range xWires {
+	for _, xWire := range mach.xWires {
 		initMap[xWire] = int8(a % 2)
 		a /= 2
 	}
-	for _, yWire := range yWires {
+	for _, yWire := range mach.yWires {
 		initMap[yWire] = int8(b % 2)
 		b /= 2
 	}
-	val1 := doCompute(initMap, computeMap)
+	val1 := doCompute(initMap, mach, swap1, swap2)
 	return ((a0 + b0) ^ val1)
 }
 
@@ -218,16 +257,41 @@ func swapFixAdd(computeMap map[string]computeSpec) [][2]string {
 	done := false
 	for !done {
 		done = true
+		mach := makeMachine(computeMap)
 		for xexp := range len(zSpec) - 1 {
-			if tryAddition(computeMap, 1<<xexp, 0) != 0 {
-				badBits := tryAddition(computeMap, 1<<xexp, 0)
+			// The strategy here is to try just adding 2**n and 0 and checking
+			// that you get the right answer. The intention was to then try more
+			// combinations after, but this was enough to find everything.
+			if tryAddition(mach, 1<<xexp, 0, "", "") != 0 {
+				// Okay, so (1<<xexp) + 0 gave the wrong answer. Try every value
+				// made up of the 5 bits (two up from xexp) through (two down from xexp)
+				// to find all the output bits that are misconnected in this region
+
+				// do it in parallel for speed
+				var w sync.WaitGroup
+				bbchan := make(chan uint64, 40)
 				for xmul := range uint64(32) {
-					xval := xmul * (uint64(1) << max(0, xexp-2))
-					for ymul := range uint64(32) {
-						yval := ymul * (uint64(1) << max(0, xexp-2))
-						badBits |= tryAddition(computeMap, xval, yval)
-					}
+					w.Add(1)
+					go func() {
+						defer w.Done()
+						badBits := uint64(0)
+						xval := xmul * (uint64(1) << max(0, xexp-2))
+						for ymul := range uint64(32) {
+							yval := ymul * (uint64(1) << max(0, xexp-2))
+							badBits |= tryAddition(mach, xval, yval, "", "")
+						}
+						bbchan <- badBits
+					}()
 				}
+				w.Wait()
+				close(bbchan)
+				badBits := uint64(0)
+				for b := range bbchan {
+					badBits |= b
+				}
+				// okay, so we've found the output bits that are bad, now
+				// we trace back from those bits to the output wires that
+				// contributed to the bad bits
 				starters := make([]string, 0)
 				for _, zWire := range zSpec {
 					if badBits%2 != 0 {
@@ -241,7 +305,12 @@ func swapFixAdd(computeMap map[string]computeSpec) [][2]string {
 				}
 				slices.Sort(wiresToTry)
 				wiresToTry = slices.Compact(wiresToTry)
-				myswaps := make([][2]string, 0)
+
+				// Now test out swaps in parallel, looking for a swap that gives
+				// us the correct answer for all the additions we checked to find
+				// badBits earlier
+				var swapWait sync.WaitGroup
+				swapChan := make(chan [2]string)
 				for idx1 := 0; idx1+1 < len(wiresToTry); idx1++ {
 					for idx2 := idx1 + 1; idx2 < len(wiresToTry); idx2++ {
 						if _, ok := computeMap[wiresToTry[idx1]]; !ok {
@@ -250,27 +319,36 @@ func swapFixAdd(computeMap map[string]computeSpec) [][2]string {
 						if _, ok := computeMap[wiresToTry[idx2]]; !ok {
 							continue
 						}
-						computeMap[wiresToTry[idx1]], computeMap[wiresToTry[idx2]] = computeMap[wiresToTry[idx2]], computeMap[wiresToTry[idx1]]
-						badBits = 0
-						for xmul := range uint64(32) {
-							xval := xmul * (uint64(1) << max(0, xexp-2))
-							for ymul := range uint64(32) {
-								yval := ymul * (uint64(1) << max(0, xexp-2))
-								badBits |= tryAddition(computeMap, xval, yval)
-								if badBits != 0 {
-									break
+						swapWait.Add(1)
+						go func(swap1, swap2 string) {
+							defer swapWait.Done()
+							// Most swaps won't even handle the base case
+							if tryAddition(mach, 1<<xexp, 0, swap1, swap2) != 0 {
+								return
+							}
+							for xmul := range uint64(32) {
+								xval := xmul * (uint64(1) << max(0, xexp-2))
+								for ymul := range uint64(32) {
+									if xval == 1<<xexp && ymul == 0 {
+										continue
+									}
+									yval := ymul * (uint64(1) << max(0, xexp-2))
+									if tryAddition(mach, xval, yval, swap1, swap2) != 0 {
+										return
+									}
 								}
 							}
-							if badBits != 0 {
-								break
-							}
-						}
-						computeMap[wiresToTry[idx1]], computeMap[wiresToTry[idx2]] = computeMap[wiresToTry[idx2]], computeMap[wiresToTry[idx1]]
-						if badBits != 0 {
-							continue
-						}
-						myswaps = append(myswaps, [2]string{wiresToTry[idx1], wiresToTry[idx2]})
+							swapChan <- [2]string{swap1, swap2}
+						}(wiresToTry[idx1], wiresToTry[idx2])
 					}
+				}
+				go func() {
+					swapWait.Wait()
+					close(swapChan)
+				}()
+				myswaps := make([][2]string, 0)
+				for swap := range swapChan {
+					myswaps = append(myswaps, swap)
 				}
 				if len(myswaps) == 0 {
 					log.Fatalf("Couldn't find fix for 1 << %v\n", xexp)
@@ -280,6 +358,7 @@ func swapFixAdd(computeMap map[string]computeSpec) [][2]string {
 				}
 				retval = append(retval, myswaps...)
 				computeMap[myswaps[0][0]], computeMap[myswaps[0][1]] = computeMap[myswaps[0][1]], computeMap[myswaps[0][0]]
+				mach = makeMachine(computeMap)
 				done = false
 			}
 		}

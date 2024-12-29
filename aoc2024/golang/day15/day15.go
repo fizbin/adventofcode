@@ -2,12 +2,16 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"maps"
 	"os"
+	"runtime/pprof"
 	"slices"
 )
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 type Location struct {
 	x, y int
@@ -38,7 +42,6 @@ func (state State) doStep(dirch byte) State {
 	case 'v':
 		mydir = Direction{1, 0}
 	}
-	newGrid := maps.Clone(state.grid)
 	newRoboLoc := state.roboLoc.Add(mydir)
 
 	moving := make(map[Location]bool)
@@ -80,13 +83,17 @@ func (state State) doStep(dirch byte) State {
 		// fmt.Println("-> ", newPush)
 		currentPush = newPush
 	}
-	for where, _ := range moving {
-		newGrid[where] = '.'
+	changes := make(map[Location]byte)
+	for where := range moving {
+		changes[where] = '.'
 	}
-	for where, _ := range moving {
-		newGrid[where.Add(mydir)] = state.grid[where]
+	for where := range moving {
+		changes[where.Add(mydir)] = state.grid[where]
 	}
-	return State{newRoboLoc, newGrid}
+	for where, what := range changes {
+		state.grid[where] = what
+	}
+	return State{newRoboLoc, state.grid}
 }
 
 func (state State) checkSum() int {
@@ -100,7 +107,16 @@ func (state State) checkSum() int {
 }
 
 func main() {
-	argsWithoutProg := os.Args[1:]
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+	argsWithoutProg := flag.Args()
 	var infile string
 	if len(argsWithoutProg) == 0 {
 		infile = "../aoc15.in"
@@ -143,7 +159,7 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		log.Fatal("Error scanning:", err)
 	}
-	state := State{roboLoc: roboLoc, grid: mymap}
+	state := State{roboLoc: roboLoc, grid: maps.Clone(mymap)}
 	for _, ch := range moves {
 		state = state.doStep(byte(ch))
 	}
@@ -164,22 +180,8 @@ func main() {
 		}
 	}
 	state = State{roboLoc: roboLoc, grid: mymap2}
-	// for i := range height {
-	// 	for j := range 2 * width {
-	// 		fmt.Printf("%c", rune(state.grid[Location{i, j}]))
-	// 	}
-	// 	fmt.Println()
-	// }
-	// fmt.Println()
 	for _, ch := range moves {
 		state = state.doStep(byte(ch))
-		// for i := range height {
-		// 	for j := range 2 * width {
-		// 		fmt.Printf("%c", rune(state.grid[Location{i, j}]))
-		// 	}
-		// 	fmt.Println()
-		// }
-		// fmt.Println()
 	}
 	fmt.Println("Part 2:", state.checkSum())
 }

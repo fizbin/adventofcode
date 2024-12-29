@@ -92,15 +92,15 @@ func main() {
 	for _, r := range robots {
 		grid[r.AtGen(bestGen)] = true
 	}
-	for yidx := range height {
-		for xidx := range width {
-			if grid[location{xidx, yidx}] {
-				fmt.Print("#")
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
-	}
-	print("Part 2:", bestGen)
+	// for yidx := range height {
+	// 	for xidx := range width {
+	// 		if grid[location{xidx, yidx}] {
+	// 			fmt.Print("#")
+	// 		} else {
+	// 			fmt.Print(".")
+	// 		}
+	// 	}
+	// 	fmt.Println()
+	// }
+	fmt.Println("Part 2:", bestGen)
 }

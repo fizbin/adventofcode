@@ -142,7 +142,7 @@ func main() {
 	}
 	baseDist := distFromStart[endLoc]
 	{
-		goodCheats := make(map[pair[Location, Location]]bool)
+		total1 := 0
 		for spot, dFromS := range distFromStart {
 			if baseDist-dFromS < 100 {
 				continue
@@ -151,15 +151,15 @@ func main() {
 				newDist := dFromS + nbr.Second + distFromEnd[nbr.First]
 				if newDist < baseDist {
 					if baseDist-newDist >= 100 {
-						goodCheats[pair[Location, Location]{spot, nbr.First}] = true
+						total1++
 					}
 				}
 			}
 		}
-		fmt.Println("Part 1:", len(goodCheats))
+		fmt.Println("Part 1:", total1)
 	}
 	{
-		goodCheats := make(map[pair[Location, Location]]bool)
+		total2 := 0
 		for spot, dFromS := range distFromStart {
 			if baseDist-dFromS < 100 {
 				continue
@@ -168,11 +168,11 @@ func main() {
 				newDist := dFromS + nbr.Second + distFromEnd[nbr.First]
 				if newDist < baseDist {
 					if baseDist-newDist >= 100 {
-						goodCheats[pair[Location, Location]{spot, nbr.First}] = true
+						total2++
 					}
 				}
 			}
 		}
-		fmt.Println("Part 2:", len(goodCheats))
+		fmt.Println("Part 2:", total2)
 	}
 }
