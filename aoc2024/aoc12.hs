@@ -1,8 +1,9 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
-import Control.Arrow (Arrow (second))
+import Control.Monad (foldM, when)
 import Data.Array.IArray
+import Data.Array.ST.Safe
 import Data.Array.Unboxed (UArray)
 import Data.Bits (Bits ((.&.)))
 import Data.Map qualified as M
@@ -13,9 +14,9 @@ neighbors bds spot =
   filter
     (inRange bds)
     [ (fst spot - 1, snd spot),
-      (fst spot + 1, snd spot),
       (fst spot, snd spot - 1),
-      (fst spot, snd spot + 1)
+      (fst spot, snd spot + 1),
+      (fst spot + 1, snd spot)
     ]
 
 getRegions :: (Eq a) => [[a]] -> [[Int]]
@@ -28,12 +29,26 @@ getRegions inp = toNestedList $ regionArray $ listArray (bounds guideArray) [1 .
     guideArray :: Array _ _
     guideArray = listArray ((0, 0), (length inp - 1, length (head inp) - 1)) (concat inp)
     iWithNbrs = (\i -> (i,) <$> neighbors (bounds guideArray) i) `concatMap` indices guideArray
-    iWithRelevantNbrs = filter (\(i, nbs) -> guideArray ! i == guideArray ! nbs) iWithNbrs
+    iWithRelevantNbrs = filter (\(i, nbr) -> i < nbr && (guideArray ! i == guideArray ! nbr)) iWithNbrs
     regionArray :: UArray (Int, Int) Int -> UArray (Int, Int) Int
-    regionArray start =
-      let iWithVals = map (second (start !)) iWithRelevantNbrs
-          newArr = accum max start iWithVals
-       in if newArr == start then start else regionArray newArr
+    regionArray start = runSTUArray $ do
+      regions <- thaw start
+      stManip regions
+      pure regions
+    stManip regions = do
+      doAgain <-
+        foldM
+          ( \redo (i, nbr) -> do
+              currentR <- readArray regions i
+              neighborR <- readArray regions nbr
+              case compare currentR neighborR of
+                EQ -> pure redo
+                LT -> writeArray regions nbr currentR >> pure True
+                GT -> writeArray regions i neighborR >> pure True
+          )
+          False
+          iWithRelevantNbrs
+      when doAgain $ stManip regions
 
 combineWithNbs :: (a -> a -> a -> a -> a -> b) -> a -> [[a]] -> [[b]]
 combineWithNbs combiner edge initg = nrows
