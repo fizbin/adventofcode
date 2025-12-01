@@ -1,0 +1,69 @@
+name: aoc2025
+version: 0.0.1
+synopsis: Advent of Code 2025 by Daniel Martin
+
+dependencies:
+  - base >= 4.7 && < 5
+  - containers
+  - multiset
+  - mtl
+  - pqueue
+  - vector
+  - split
+  - text
+  - bytestring
+  - array
+  - linear
+  - list-t
+  - data-default
+  - unordered-containers
+language: GHC2021
+when:
+  - condition: os(windows)
+    then:
+      ghc-options: ["-Wall", "-O2", "+RTS", "--io-manager=native", "-RTS"]
+    else:
+      ghc-options: ["-Wall", "-O2"]
+library:
+  source-dirs:
+    - .
+  exposed-modules:
+    - Dijkstra
+executables:
+  aoc1: &aocexe
+    "main": "aoc1.hs"
+    "source-dirs": "."
+    dependencies: "aoc2025"
+    when:
+      - condition: os(windows)
+        then:
+          ghc-options:
+            - "-with-rtsopts=--io-manager=native"
+            - "-rtsopts"
+        else:
+          ghc-options: ["-rtsopts"]
+  # aoc2: { <<: *aocexe, "main": "aoc2.hs" }
+  # aoc3: { <<: *aocexe, "main": "aoc3.hs" }
+  # aoc3b: { <<: *aocexe, "main": "aoc3b.hs" }
+  # aoc4: { <<: *aocexe, "main": "aoc4.hs" }
+  # aoc5: { <<: *aocexe, "main": "aoc5.hs" }
+  # aoc6: { <<: *aocexe, "main": "aoc6.hs" }
+  # aoc7: { <<: *aocexe, "main": "aoc7.hs" }
+  # aoc8: { <<: *aocexe, "main": "aoc8.hs" }
+  # aoc9: { <<: *aocexe, "main": "aoc9.hs" }
+  # aoc10: { <<: *aocexe, "main": "aoc10.hs" }
+  # aoc11: { <<: *aocexe, "main": "aoc11.hs" }
+  # aoc12: { <<: *aocexe, "main": "aoc12.hs" }
+  # aoc13: { <<: *aocexe, "main": "aoc13.hs" }
+  # aoc14: { <<: *aocexe, "main": "aoc14.hs" }
+  # aoc15: { <<: *aocexe, "main": "aoc15.hs" }
+  # aoc16: { <<: *aocexe, "main": "aoc16.hs" }
+  # aoc17: { <<: *aocexe, "main": "aoc17.hs" }
+  # aoc18: { <<: *aocexe, "main": "aoc18.hs" }
+  # aoc19: { <<: *aocexe, "main": "aoc19.hs" }
+  # aoc20: { <<: *aocexe, "main": "aoc20.hs" }
+  # aoc21: { <<: *aocexe, "main": "aoc21.hs" }
+  # aoc22: { <<: *aocexe, "main": "aoc22.hs" }
+  # aoc23: { <<: *aocexe, "main": "aoc23.hs" }
+  # aoc24: { <<: *aocexe, "main": "aoc24.hs" }
+  # aoc25: { <<: *aocexe, "main": "aoc25.hs" }
