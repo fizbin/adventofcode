@@ -42,7 +42,7 @@ executables:
             - "-rtsopts"
         else:
           ghc-options: ["-rtsopts"]
-  # aoc2: { <<: *aocexe, "main": "aoc2.hs" }
+  aoc2: { <<: *aocexe, "main": "aoc2.hs" }
   # aoc3: { <<: *aocexe, "main": "aoc3.hs" }
   # aoc3b: { <<: *aocexe, "main": "aoc3b.hs" }
   # aoc4: { <<: *aocexe, "main": "aoc4.hs" }
