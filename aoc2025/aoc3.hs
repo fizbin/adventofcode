@@ -20,9 +20,9 @@ part2 line0 = read $ go 12 line0
     go 1 line = [maximum line]
     go i line =
       let maxChar = maximum $ take (length line - i + 1) line
-      in case dropWhile (/= maxChar) line of
-        (firstChar:rest) -> firstChar : go (i-1) rest
-        [] -> error "also shouldn't get here"
+       in case dropWhile (/= maxChar) line of
+            (firstChar:rest) -> firstChar : go (i - 1) rest
+            [] -> error "also shouldn't get here"
 
 main :: IO ()
 main = do
