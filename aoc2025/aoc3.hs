@@ -15,7 +15,7 @@ part2 [] = 0
 part2 line0 = read $ go 12 line0
   where
     go :: Int -> String -> String
-    go 0 _ = "shouldn't get here"
+    go 0 _ = error "shouldn't get here"
     go _ "" = error "shouldn't get here either"
     go 1 line = [maximum line]
     go i line =
