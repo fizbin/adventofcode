@@ -13,6 +13,8 @@ cradle:
       component: "aoc2025:exe:aoc4"
     - path: "./aoc5.hs"
       component: "aoc2025:exe:aoc5"
+    - path: "./aoc5b.hs"
+      component: "aoc2025:exe:aoc5b"
     # - path: "./aoc6.hs"
     #   component: "aoc2025:exe:aoc6"
     # - path: "./aoc7.hs"
