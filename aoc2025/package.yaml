@@ -50,7 +50,7 @@ executables:
   aoc5b: { <<: *aocexe, "main": "aoc5b.hs" }
   aoc6: { <<: *aocexe, "main": "aoc6.hs" }
   aoc7: { <<: *aocexe, "main": "aoc7.hs" }
-  # aoc8: { <<: *aocexe, "main": "aoc8.hs" }
+  aoc8: { <<: *aocexe, "main": "aoc8.hs" }
   # aoc9: { <<: *aocexe, "main": "aoc9.hs" }
   # aoc10: { <<: *aocexe, "main": "aoc10.hs" }
   # aoc11: { <<: *aocexe, "main": "aoc11.hs" }

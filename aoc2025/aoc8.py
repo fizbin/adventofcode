@@ -12,7 +12,7 @@ def part1(data, n_to_connect) -> int:
     all_idx_pairs = list(itertools.combinations(range(len(data)), 2))
     all_idx_pairs.sort(key=lambda p: distsq(data[p[0]],data[p[1]]))
     connected = {}
-    print("DBG>", all_idx_pairs[0:n_to_connect])
+    # print("DBG>", all_idx_pairs[0:n_to_connect])
     for x in all_idx_pairs[0:n_to_connect]:
         connected.setdefault(x[0], []).append(x[1])
         connected.setdefault(x[1], []).append(x[0])
