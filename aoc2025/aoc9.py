@@ -6,7 +6,10 @@ import re
 
 def part1(data: list[tuple[int, ...]]) -> int:
     points = set(data)
-    points_tl, points_tr, points_bl, points_br = set(), set(), set(), set()
+    points_tl: set[tuple[int, ...]] = set()
+    points_tr: set[tuple[int, ...]] = set()
+    points_bl: set[tuple[int, ...]] = set()
+    points_br: set[tuple[int, ...]] = set()
     for point in points:
         if not any(p[0] <= point[0] and p[1] <= point[1] for p in points_tl):
             points_tl.add(point)

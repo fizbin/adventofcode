@@ -93,7 +93,7 @@ def moves(buttons: list[Sequence[int]], jolts: Sequence[int]) -> int:
     # print(f"added {n_added}")
     # print(bigger_button_mat[-n_added:, :])
     min_presses = sum(jolts) + 1
-    for extra_vals in itertools.product(*(range(v+1) for v in extra_jolts_max_vals)):
+    for extra_vals in itertools.product(*(range(v + 1) for v in extra_jolts_max_vals)):
         bigger_jolt_vec = np.array(list(jolts) + list(extra_vals)).reshape(
             (bigger_button_mat.shape[0], 1)
         )

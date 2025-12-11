@@ -4,8 +4,8 @@ import itertools
 import re
 
 
-def part1(connections: dict) -> int:
-    rev_map = {}
+def part1(connections: dict[str, list[str]]) -> int:
+    rev_map: dict[str, list[str]] = {}
     for x, ys in connections.items():
         for y in ys:
             rev_map.setdefault(y, []).append(x)
@@ -21,8 +21,8 @@ def part1(connections: dict) -> int:
     return tot["you"]
 
 
-def part2(connections: dict) -> int:
-    rev_map = {}
+def part2(connections: dict[str, list[str]]) -> int:
+    rev_map: dict[str, list[str]] = {}
     for x, ys in connections.items():
         for y in ys:
             rev_map.setdefault(y, []).append(x)
