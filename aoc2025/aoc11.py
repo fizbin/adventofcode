@@ -15,9 +15,10 @@ def part1(connections: dict[str, list[str]]) -> int:
         ochanged = changed
         changed = set()
         for y in (nb for ch in ochanged for nb in rev_map.get(ch, [])):
-            if all(nb in tot for nb in connections[y]):
-                tot[y] = sum(tot[nb] for nb in connections[y])
-                changed.add(y)
+            if y not in tot:
+                if all(nb in tot for nb in connections[y]):
+                    tot[y] = sum(tot[nb] for nb in connections[y])
+                    changed.add(y)
     return tot["you"]
 
 
@@ -34,22 +35,23 @@ def part2(connections: dict[str, list[str]]) -> int:
         ochanged = changed
         changed = set()
         for y in (nb for ch in ochanged for nb in rev_map.get(ch, [])):
-            if all(nb in tot for nb in connections[y]):
-                ptot = [0, 0, 0, 0]
-                for nb in connections[y]:
-                    if nb == "dac":
-                        ptot[1] += tot[nb][0] + tot[nb][1]
-                        ptot[3] += tot[nb][2] + tot[nb][3]
-                    elif nb == "fft":
-                        ptot[2] += tot[nb][0] + tot[nb][2]
-                        ptot[3] += tot[nb][1] + tot[nb][3]
-                    else:
-                        ptot[0] += tot[nb][0]
-                        ptot[1] += tot[nb][1]
-                        ptot[2] += tot[nb][2]
-                        ptot[3] += tot[nb][3]
-                tot[y] = tuple(ptot)
-                changed.add(y)
+            if y not in tot:
+                if all(nb in tot for nb in connections[y]):
+                    ptot = [0, 0, 0, 0]
+                    for nb in connections[y]:
+                        if nb == "dac":
+                            ptot[1] += tot[nb][0] + tot[nb][1]
+                            ptot[3] += tot[nb][2] + tot[nb][3]
+                        elif nb == "fft":
+                            ptot[2] += tot[nb][0] + tot[nb][2]
+                            ptot[3] += tot[nb][1] + tot[nb][3]
+                        else:
+                            ptot[0] += tot[nb][0]
+                            ptot[1] += tot[nb][1]
+                            ptot[2] += tot[nb][2]
+                            ptot[3] += tot[nb][3]
+                    tot[y] = tuple(ptot)
+                    changed.add(y)
     return tot["svr"][3]
 
 
