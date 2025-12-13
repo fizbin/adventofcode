@@ -1,6 +1,7 @@
 from typing import Sequence
 import aoc_util
 import itertools
+import heapq
 import numpy as np
 import re
 
@@ -32,6 +33,7 @@ def check_acceptable(x, button_mat, jolt_col_vec) -> int | None:
             return None
     if np.abs(button_mat @ x - jolt_col_vec).sum() > 0.4:
         return None
+    # print(np.ravel(x))
     return int(x.sum() + 0.1)
 
 
@@ -48,13 +50,16 @@ def solve1(button_mat, jolt_col_vec) -> int | None:
 
 
 def extra_joltage_rows(buttons: list[Sequence[int]], jolts: Sequence[int]):
+    button_max_vals = []
+    for button in buttons:
+        button_max_vals.append(min(jolts[b] for b in button))
+    button_idx_list = list(range(len(buttons)))
+    button_idx_list.sort(key=lambda idx: button_max_vals[idx])
     for extra_joltage_reach in range(1, len(buttons) + 1):
-        for jolt_sig in itertools.combinations(range(len(buttons)), extra_joltage_reach):
+        for jolt_sig in itertools.combinations(button_idx_list, extra_joltage_reach):
             max_val = 0
             for button_idx in jolt_sig:
-                button = buttons[button_idx]
-                button_max = min(jolts[b] for b in button)
-                max_val += button_max
+                max_val += button_max_vals[button_idx]
             yield (jolt_sig, max_val)
 
 

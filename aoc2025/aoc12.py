@@ -4,7 +4,7 @@ import re
 
 
 def presents_fit(pdict, width, height, req):
-    p_sz = {i: p.sum() for (i,p) in pdict.items()}
+    p_sz = {i: p.sum() for (i, p) in pdict.items()}
     req_sz = sum(v * p_sz[i] for (i, v) in enumerate(req))
     if req_sz > width * height:
         return False
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         m = re.fullmatch(r"(\d+):\n((?:[#.]+\s*)+)", pdata)
         assert m
         tgrid = np.array(aoc_util.chargrid(m.group(2)), dtype=str)
-        presents[int(m.group(1))] = (tgrid == '#').astype(int)
+        presents[int(m.group(1))] = (tgrid == "#").astype(int)
     can_fit = 0
     for region_line in regions:
         m = re.fullmatch(r"(\d+)x(\d+): ([\d ]+)", region_line)
