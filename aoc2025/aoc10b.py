@@ -36,7 +36,7 @@ def moves(buttons: list[Sequence[int]], jolts: Sequence[int]) -> int:
     # (Yeah, I'm walking backwards; there's a good reason), and "r" is a power of 2;
     # r = 1, 2, 4, ... . I'm going to say that a value r "divides" a joltage list if
     # every number in the joltage list is a multiple of r. The only valid spots for
-    # us to go to are (r, jolts_left) pairs were r divides jolts_left.
+    # us to go to are (r, jolts_left) pairs where r divides jolts_left.
 
     # We start at (1, jolts) and run Dijkstra to get to (anything, (0, 0, ..., 0))
 
@@ -76,6 +76,8 @@ def moves(buttons: list[Sequence[int]], jolts: Sequence[int]) -> int:
         for press in press_by_sig.get(sig, []):
             (pcount, pressed_jolts) = pressings[press]
             new_jolts = [j_l - p_j * r_factor for (j_l, p_j) in zip(jolts_left, pressed_jolts)]
+            # guaranteed true by the sig check, commented out for speed
+            # assert all(nj % (2*r_factor)==0 for nj in new_jolts)
             if all(nj >= 0 for nj in new_jolts):
                 yield (r_factor * pcount, tuple(new_jolts))
 
