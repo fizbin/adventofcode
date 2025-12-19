@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"regexp"
+	"runtime/pprof"
 	"slices"
 	"strconv"
 	"strings"
@@ -17,37 +19,35 @@ type Machine struct {
 	jolts   []int
 }
 
-func solveForIntsModulo(coeff [][]int, yVals []int, modulus int, prevSolns [][]int) ([][]int, error) {
+func solveForIntsModuloSig(coeff [][]int, yVals []int, modulus int, prevSolns [][]int, sigMap map[string][][]int) ([][]int, error) {
 	if len(coeff) != len(yVals) {
 		return nil, fmt.Errorf("bad conditions: coeff had length %d and yVals had length %d", len(coeff), len(yVals))
 	}
 	if len(prevSolns) < 1 {
 		return nil, fmt.Errorf("no previous solutions given")
 	}
-	nvars := len(coeff[0])
 	ans := make([][]int, 0)
 	halfmod := modulus / 2
-	for testpat := uint64(0); testpat < (1 << nvars); testpat++ {
-		base := make([]int, nvars)
-		for idx := range nvars {
-			if (1<<idx)&testpat != 0 {
-				base[idx] += halfmod
+	sigWorker := make([]byte, len(yVals))
+	for _, prev := range prevSolns {
+		for yIdx, coeffLine := range coeff {
+			mySum := 0
+			for xIdx, pv := range prev {
+				mySum += coeffLine[xIdx] * pv
+			}
+			if (mySum-yVals[yIdx])%halfmod != 0 {
+				panic("Bad prev solution")
+			}
+			if (mySum-yVals[yIdx])%modulus == 0 {
+				sigWorker[yIdx] = '0'
+			} else {
+				sigWorker[yIdx] = '1'
 			}
 		}
-	NEXTPREV:
-		for _, prev := range prevSolns {
-			for yIdx, coeffLine := range coeff {
-				mySum := 0
-				for xIdx, pv := range prev {
-					mySum += coeffLine[xIdx] * (base[xIdx] + pv)
-				}
-				if mySum%modulus != yVals[yIdx]%modulus {
-					continue NEXTPREV
-				}
-			}
-			newSoln := slices.Clone(base)
-			for xIdx, pv := range prev {
-				newSoln[xIdx] += pv
+		for _, added := range sigMap[string(sigWorker)] {
+			newSoln := slices.Clone(prev)
+			for idx, val := range added {
+				newSoln[idx] += val * halfmod
 			}
 			ans = append(ans, newSoln)
 		}
@@ -61,9 +61,10 @@ func solveForIntsModulo(coeff [][]int, yVals []int, modulus int, prevSolns [][]i
 // This depends on the idea that you're solving for non-negative integers and that all
 // coefficients are also non-negative integers, but that's all.
 func solveForInts(coeff [][]int, yVals []int) ([][]int, error) {
+	sigMap := buildSigMap(coeff)
 	working := [][]int{make([]int, len(coeff[0]))}
 	for mod := 2; mod > 0; mod *= 2 {
-		nworking, err := solveForIntsModulo(coeff, yVals, mod, working)
+		nworking, err := solveForIntsModuloSig(coeff, yVals, mod, working, sigMap)
 		// fmt.Printf("Modulo: %d; #solutions: %d\n", mod, len(nworking))
 		if err != nil {
 			return nil, err
@@ -72,6 +73,7 @@ func solveForInts(coeff [][]int, yVals []int) ([][]int, error) {
 		keepGoing := false
 	NEXTSOLN:
 		for _, soln := range nworking {
+			foundASmallVal := false
 			for yIdx, yVal := range yVals {
 				ySum := 0
 				for xIdx := range len(soln) {
@@ -80,9 +82,10 @@ func solveForInts(coeff [][]int, yVals []int) ([][]int, error) {
 				if ySum > yVal {
 					continue NEXTSOLN
 				} else if ySum < yVal {
-					keepGoing = true
+					foundASmallVal = true
 				}
 			}
+			keepGoing = keepGoing || foundASmallVal
 			nnworking = append(nnworking, soln)
 		}
 		if !keepGoing {
@@ -93,11 +96,33 @@ func solveForInts(coeff [][]int, yVals []int) ([][]int, error) {
 	return nil, fmt.Errorf("exceeded int bounds finding all the solutions")
 }
 
+func buildSigMap(coeff [][]int) map[string][][]int {
+	sigMap := make(map[string][][]int)
+	for sigNum := uint64(0); sigNum < (1 << len(coeff[0])); sigNum++ {
+		xvars := make([]int, len(coeff[0]))
+		sigWorker := slices.Repeat([]byte{'0'}, len(coeff))
+		for xIdx := range len(coeff[0]) {
+			if sigNum&(1<<xIdx) == 0 {
+				xvars[xIdx] = 0
+			} else {
+				xvars[xIdx] = 1
+				for yIdx := range len(coeff) {
+					sigWorker[yIdx] ^= byte(coeff[yIdx][xIdx] % 2)
+				}
+			}
+		}
+		sig := string(sigWorker)
+		sigMap[sig] = append(sigMap[sig], xvars)
+	}
+	return sigMap
+}
+
 func part1(machines []Machine) int {
 	wholeSum := 0
 	for _, mach := range machines {
 		coeffs := make([][]int, len(mach.lights))
-		for idx := range len(mach.lights) {
+		sig := make([]byte, len(mach.lights))
+		for idx, lightOn := range mach.lights {
 			coeffRow := make([]int, len(mach.buttons))
 			for bidx, button := range mach.buttons {
 				if slices.Contains(button, idx) {
@@ -105,14 +130,13 @@ func part1(machines []Machine) int {
 				}
 			}
 			coeffs[idx] = coeffRow
+			sig[idx] = '0' + byte(lightOn)
 		}
 
-		allGood, err := solveForIntsModulo(coeffs, mach.lights, 2, [][]int{make([]int, len(mach.buttons))})
-		if err != nil {
-			log.Fatal(err)
-		}
+		sigMap := buildSigMap(coeffs)
+
 		minpress := len(mach.buttons) + 1
-		for _, soln := range allGood {
+		for _, soln := range sigMap[string(sig)] {
 			press := 0
 			for _, v := range soln {
 				press += v
@@ -158,8 +182,19 @@ func part2(machines []Machine) int {
 	return wholeSum
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
-	argsWithoutProg := os.Args[1:]
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+	argsWithoutProg := flag.Args()
 	var infile string
 	if len(argsWithoutProg) > 0 {
 		infile = argsWithoutProg[0]
