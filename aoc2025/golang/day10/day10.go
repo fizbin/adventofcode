@@ -26,7 +26,7 @@ func solveForIntsModuloSig(coeff [][]int, yVals []int, modulus int, prevSolns []
 	if len(prevSolns) < 1 {
 		return nil, fmt.Errorf("no previous solutions given")
 	}
-	ans := make([][]int, 0)
+	ans := make([][]int, 0, 10)
 	halfmod := modulus / 2
 	sigWorker := make([]byte, len(yVals))
 	for _, prev := range prevSolns {
@@ -45,7 +45,8 @@ func solveForIntsModuloSig(coeff [][]int, yVals []int, modulus int, prevSolns []
 			}
 		}
 		for _, added := range sigMap[string(sigWorker)] {
-			newSoln := slices.Clone(prev)
+			newSoln := make([]int, len(prev))
+			copy(newSoln, prev)
 			for idx, val := range added {
 				newSoln[idx] += val * halfmod
 			}
