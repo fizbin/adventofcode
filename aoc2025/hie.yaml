@@ -1,14 +1,14 @@
 cradle:
   stack:
     components:
+    - path: "./Dijkstra.hs"
+      component: "aoc2025:lib"
     - path: "./aoc1.hs"
       component: "aoc2025:exe:aoc1"
     - path: "./aoc2.hs"
       component: "aoc2025:exe:aoc2"
     - path: "./aoc3.hs"
       component: "aoc2025:exe:aoc3"
-    # - path: "./aoc3b.hs"
-    #   component: "aoc2025:exe:aoc3b"
     - path: "./aoc4.hs"
       component: "aoc2025:exe:aoc4"
     - path: "./aoc5.hs"
@@ -25,8 +25,8 @@ cradle:
       component: "aoc2025:exe:aoc9"
     - path: "./aoc10.hs"
       component: "aoc2025:exe:aoc10"
-    # - path: "./aoc11.hs"
-    #   component: "aoc2025:exe:aoc11"
+    - path: "./aoc11.hs"
+      component: "aoc2025:exe:aoc11"
     # - path: "./aoc12.hs"
     #   component: "aoc2025:exe:aoc12"
     # - path: "./aoc13.hs"
