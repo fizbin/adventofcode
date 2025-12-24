@@ -1,6 +1,4 @@
 import aoc_util
-import functools
-import itertools
 import re
 
 

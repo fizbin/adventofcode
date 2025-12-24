@@ -59,7 +59,7 @@ def moves(buttons: list[Sequence[int]], jolts: Sequence[int]) -> int:
     # that for you to figure out by reading the code.
 
     pressings = []
-    press_by_sig = {}
+    press_by_sig: dict[tuple[int, ...], list[int]] = {}
     for press in range(2 ** len(buttons)):
         pressed_jolts = [0] * len(jolts)
         pcount = 0
